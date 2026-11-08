@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><title>RKP കുറി</title><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="RKP കുറി"><meta name="theme-color" content="#0f4d36"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.json"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style id="appcss">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><title>RKP കുറി</title><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="RKP കുറി"><meta name="theme-color" content="#0f4d36"><link rel="apple-touch-icon" href="icon-180.png"><link rel="manifest" href="manifest.json"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style id="appcss">
 :root{--g:#0f4d36;--g2:#16694a;--gl:#e3f1ea;--gold:#c9961a;--goldl:#fbf1d6;--bg:#f3f1ec;--card:#fff;--ink:#1c2420;--mut:#6b746f;--line:#e6e3dc;--red:#b3261e;--redl:#fbe9e7;--blue:#1d5fa8;--bluel:#e5eefa}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;font-size:15px}
@@ -112,6 +112,12 @@ var fromLocal=false;
 if(loc&&loc.kuris&&(loc.savedAt||0)>(EMB.savedAt||0)){S=loc;fromLocal=true}
 var UI={};try{UI=JSON.parse(lsGet(LSUI))||{}}catch(e){}
 if(!UI.m)UI.m={};
+var FIREBASE_CONFIG=null;/*FIREBASE_CONFIG*/
+var FBV='11.0.2';
+var SY={};try{SY=JSON.parse(lsGet('kuri-sync'))||{}}catch(e){}
+var DEV=lsGet('kuri-device');if(!DEV){DEV=Math.random().toString(36).slice(2)+Date.now().toString(36);lsSet('kuri-device',DEV)}
+var live={state:'off',rev:0,remoteText:null,by:'',at:0,ref:null,fb:null,busy:false,again:false,err:'',unsub:null};
+var pendingRender=false;
 var artifact=null,artReady=false,readOnly=false,dirty=false,saving=false,timer=null,modalOpen=false,pending=null;
 var app=document.getElementById('app'),mroot=document.getElementById('modal-root');
 
@@ -120,8 +126,103 @@ function buildHTML(){
   return '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>RKP കുറി</title><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style id="appcss">'+CSS_SRC+'</style></head><body><div id="app"></div><div id="modal-root"></div><script id="state" type="application/json">'+json+'<\/script><script id="appjs">'+JS_SRC+'<\/script></body></html>';
 }
 function saveUI(){lsSet(LSUI,JSON.stringify(UI))}
-function commit(){S.savedAt=Date.now();lsSet(LS,JSON.stringify(S));dirty=true;render();schedule(3500)}
-function schedule(ms){if(!artifact||readOnly)return;clearTimeout(timer);timer=setTimeout(flush,ms||1800)}
+function commit(){S.savedAt=Date.now();lsSet(LS,JSON.stringify(S));dirty=true;render();if(SY.code){livePush();return}schedule(3500)}
+function addLog(k,x){if(!S.log)S.log=[];S.log.unshift({t:Date.now(),by:SY.name||'',k:k?k.id:'',x:x});if(S.log.length>300)S.log.length=300}
+function saveSY(){lsSet('kuri-sync',JSON.stringify(SY))}
+function fbGet(){
+  if(window.__KURI_FB)return Promise.resolve(window.__KURI_FB);
+  if(live.fb)return Promise.resolve(live.fb);
+  if(!FIREBASE_CONFIG)return Promise.reject(new Error('Online sync is not configured yet'));
+  var b='https://www.gstatic.com/firebasejs/'+FBV+'/';
+  return Promise.all([import(b+'firebase-app.js'),import(b+'firebase-auth.js'),import(b+'firebase-firestore.js')]).then(function(m){
+    var appx=m[0].initializeApp(FIREBASE_CONFIG),auth=m[1].getAuth(appx),db=m[2].getFirestore(appx);
+    return m[1].signInAnonymously(auth).then(function(){live.fb={F:m[2],db:db};return live.fb});
+  });
+}
+function shareText_(){return JSON.stringify(Object.assign({},S,{activeId:null}))}
+function applyRemote(text){
+  var a=S.activeId,o;try{o=JSON.parse(text)}catch(e){return}
+  if(!o||!o.kuris)return;
+  S=o;S.activeId=(a&&S.kuris.some(function(k){return k.id===a}))?a:null;
+  live.remoteText=text;lsSet(LS,JSON.stringify(S));
+  if(modalOpen)pendingRender=true;else render();
+}
+function liveStart(){
+  if(!SY.code)return;
+  live.state='connecting';updStatus();
+  fbGet().then(function(fb){
+    var F=fb.F;live.ref=F.doc(fb.db,'groups',SY.code);
+    if(live.unsub)live.unsub();
+    live.unsub=F.onSnapshot(live.ref,function(snap){
+      if(!snap.exists()){live.state='offline';live.err='Group not found';updStatus();return}
+      var d=snap.data();live.by=d.updatedBy||'';live.at=d.at||0;
+      if(d.rev!==live.rev){
+        var mine=d.dev===DEV&&live.rev>0;
+        live.rev=d.rev;live.remoteText=d.data;
+        if(!mine)applyRemote(d.data);
+      }
+      if(!live.busy)live.state='live';live.err='';updStatus();
+      if(UI.tab==='more'&&!modalOpen)render();
+    },function(err){live.state='offline';live.err=String((err&&err.code)||err);updStatus()});
+  }).catch(function(e){live.state='offline';live.err=String((e&&e.message)||e);updStatus()});
+}
+function livePush(){
+  if(live.busy){live.again=true;return}
+  if(!live.ref)return;
+  var fb=window.__KURI_FB||live.fb,F=fb.F,base=live.rev,text=shareText_();
+  live.busy=true;live.state='saving';updStatus();
+  F.runTransaction(fb.db,function(tx){return tx.get(live.ref).then(function(snap){
+    var cur=snap.exists()?snap.data().rev:0;
+    if(cur!==base)throw {code:'stale'};
+    tx.set(live.ref,{data:text,rev:base+1,updatedBy:SY.name||'',dev:DEV,at:Date.now()});
+    return base+1;
+  })}).then(function(r){
+    live.rev=Math.max(live.rev,r);live.remoteText=text;live.busy=false;live.state='live';dirty=false;updStatus();
+    if(live.again){live.again=false;livePush()}
+  },function(e){
+    live.busy=false;live.again=false;dirty=false;
+    if(e&&e.code==='stale'){live.state='live';toast((live.by||'Your partner')+' changed the data at the same time. Your last change was not saved — please do it again.')}
+    else{live.state='offline';toast('No internet — your last change was not saved')}
+    if(live.remoteText)applyRemote(live.remoteText);updStatus();
+  });
+}
+function genCode(){var a='abcdefghjkmnpqrstuvwxyz23456789',r=new Uint32Array(20),o='';crypto.getRandomValues(r);for(var i=0;i<20;i++){if(i&&i%4===0)o+='-';o+=a[r[i]%a.length]}return 'rkp-'+o}
+function liveCreate(name){
+  var code=genCode();toast('Creating online group…');
+  fbGet().then(function(fb){var F=fb.F,ref=F.doc(fb.db,'groups',code);
+    var text=shareText_();
+    return F.setDoc(ref,{data:text,rev:1,updatedBy:name,dev:DEV,at:Date.now()}).then(function(){
+      SY={code:code,name:name};saveSY();live.rev=1;live.remoteText=text;liveStart();render();
+      openModal('<h2>Online group created ✓</h2><p class="m">Send this code to your partner. On their phone: Settings → Live online mode → Join.</p><div class="note" style="font-size:16px;font-weight:800;color:var(--ink);text-align:center;user-select:all">'+code+'</div><div class="btns mt"><a class="btn wa" href="'+waLink('RKP കുറി live group code:\n'+code+'\n\nOpen RKP കുറി → Settings → Live online mode → Join, and paste this code.')+'" target="_blank" rel="noopener">Send on WhatsApp</a><button class="btn s" data-a="close">Done</button></div>');
+    });
+  }).catch(function(e){toast('Could not create: '+((e&&e.message)||e))});
+}
+function liveJoin(code,name){
+  code=code.trim().toLowerCase();if(code.length<20)return toast('That code is too short');
+  toast('Joining…');
+  fbGet().then(function(fb){var F=fb.F,ref=F.doc(fb.db,'groups',code);
+    return F.getDoc(ref).then(function(snap){
+      if(!snap.exists()){toast('Code not found — check it and try again');return}
+      lsSet('kuri-manager-before-join',JSON.stringify(S));
+      var d=snap.data();SY={code:code,name:name};saveSY();live.rev=d.rev;applyRemote(d.data);liveStart();closeModal();toast('Joined ✓ Live data loaded');
+    });
+  }).catch(function(e){toast('Could not join: '+((e&&e.message)||e))});
+}
+function liveLeave(){if(live.unsub)live.unsub();live.unsub=null;live.ref=null;live.state='off';live.rev=0;SY={};saveSY();render();toast('Live mode off. Data stays on this phone.')}
+function ago(t){if(!t)return '';var s=Math.round((Date.now()-t)/1000);if(s<60)return 'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return new Date(t).toLocaleDateString('en-GB')}
+function viewLive(){
+  if(SY.code){
+    var st={live:'🟢 Live — connected',saving:'🟡 Saving…',connecting:'🟡 Connecting…',offline:'🔴 Not connected'}[live.state]||'…';
+    return '<div class="card"><h3>Live online mode</h3><div class="kv"><span>Status</span><b>'+st+'</b></div>'+(live.err&&live.state==='offline'?'<div class="note">'+esc(live.err)+'</div>':'')+
+    '<div class="kv"><span>Your name</span><b>'+esc(SY.name||'—')+'</b></div><div class="kv"><span>Last change</span><b>'+esc((live.by||'—')+(live.at?' · '+ago(live.at):''))+'</b></div>'+
+    '<label class="f">Group code (share only with your partner)</label><div class="note" style="color:var(--ink);font-weight:700;user-select:all">'+esc(SY.code)+'</div>'+
+    '<div class="btns"><a class="btn wa sm" href="'+waLink('RKP കുറി live group code:\n'+SY.code+'\n\nOpen RKP കുറി → Settings → Live online mode → Join, and paste this code.')+'" target="_blank" rel="noopener">Send code</a><button class="btn s sm" data-a="liveRetry">Reconnect</button><button class="btn r sm" data-a="liveLeave">Turn off</button></div></div>';
+  }
+  return '<div class="card"><h3>Live online mode</h3><p class="mut" style="margin-top:0;font-size:13px">Share this Kuri live with your partner (e.g. UAE + India). Every change shows on both phones instantly.</p>'+
+    (FIREBASE_CONFIG||window.__KURI_FB?'<div class="btns"><button class="btn p" data-a="liveNew">Create group</button><button class="btn s" data-a="liveJoinF">Join with code</button></div>':'<div class="warn">Online database not connected yet.</div>')+'</div>';
+}
+
+function schedule(ms){if(!artifact||readOnly||SY.code)return;clearTimeout(timer);timer=setTimeout(flush,ms||1800)}
 function flush(){
   if(!dirty||!artifact||readOnly||saving)return;
   if(modalOpen)return;
@@ -138,10 +239,10 @@ function flush(){
 try{if(window.claude&&claude.use){claude.use('artifact').then(function(a){artifact=a;artReady=true;if(a&&fromLocal){dirty=true;schedule(1500)}updStatus()},function(){artReady=true;updStatus()})}else artReady=true}catch(e){artReady=true}
 setTimeout(function(){if(!artReady){artReady=true;updStatus()}},11000);
 
-function statusText(){if(readOnly)return 'View only';if(!artReady)return '…';if(!artifact)return 'Saved on this device';if(saving)return 'Saving…';if(dirty)return 'Saving soon…';return 'Saved ✓'}
+function statusText(){if(SY.code)return ({live:'🟢 Live',saving:'Saving…',connecting:'Connecting…',offline:'🔴 Offline'}[live.state]||'…');if(readOnly)return 'View only';if(!artReady)return '…';if(!artifact)return 'Saved on this device';if(saving)return 'Saving…';if(dirty)return 'Saving soon…';return 'Saved ✓'}
 function updStatus(){var el=document.getElementById('stat');if(el)el.textContent=statusText()}
 
-var ML={'This Month':'ഈ മാസം','Members':'അംഗങ്ങൾ','Reports':'റിപ്പോർട്ട്','Settings':'ക്രമീകരണം','Collection':'പിരിവ്','Total pot':'ആകെ കുറി തുക','Moderator share':'നടത്തിപ്പുകാരന്റെ വിഹിതം','Winner receives':'നറുക്ക് കിട്ടിയ ആൾക്ക്','Lot for':'നറുക്കെടുപ്പ്','🎲 Take Lot':'🎲 നറുക്കെടുക്കുക','🤝 Assign':'🤝 നേരിട്ട് നൽകുക','Names in the lot':'നറുക്കിലുള്ള പേരുകൾ','Already received':'ഇതിനകം കിട്ടിയവർ','Set behind (not in lot)':'പിന്നിലേക്ക് മാറ്റിയവർ','Set behind':'പിന്നിലേക്ക് മാറ്റുക','⏸ Behind':'⏸ പിന്നിൽ','Behind':'പിന്നിൽ','Won M':'കിട്ടി: മാസം ','Not paid':'അടച്ചില്ല','Paid':'അടച്ചു','Mark all paid':'എല്ലാവരും അടച്ചു','Clear all':'എല്ലാം മായ്ക്കുക','Payments':'അടവുകൾ','Payout handed over':'തുക കൈമാറി','Share on WhatsApp':'WhatsApp-ൽ അയക്കുക','Copy text':'കോപ്പി ചെയ്യുക','Undo this result':'ഈ ഫലം റദ്ദാക്കുക','🎲 Won by lot':'🎲 നറുക്കിലൂടെ','🤝 Assigned on request':'🤝 അഭ്യർത്ഥന പ്രകാരം','👤 Moderator month':'👤 നടത്തിപ്പുകാരന്റെ മാസം','Month':'മാസം','of':'/','paid':'പേർ അടച്ചു','pending':'ബാക്കി','all collected ✓':'മുഴുവൻ പിരിച്ചു ✓','Draw':'നറുക്ക്','Go to':'അടുത്ത മാസം:','Add member':'അംഗത്തെ ചേർക്കുക','Name':'പേര്','Phone':'ഫോൺ','+ Add':'+ ചേർക്കുക','Add many':'കൂട്ടമായി ചേർക്കുക','Edit':'മാറ്റുക','Search name or phone':'പേര് / ഫോൺ തിരയുക','members':'അംഗങ്ങൾ','received':'പേർക്ക് കിട്ടി','Months drawn':'നറുക്കെടുത്ത മാസങ്ങൾ','Total collected':'ആകെ പിരിച്ചത്','Moderator earned':'നടത്തിപ്പുകാരന്','Paid to winners':'വിജയികൾക്ക് നൽകിയത്','Pending dues':'കുടിശ്ശിക','up to':'വരെ','Remind':'ഓർമ്മിപ്പിക്കുക','Month by month':'മാസം തിരിച്ച്','Not drawn':'എടുത്തിട്ടില്ല','Still waiting':'ഇനി കിട്ടാനുള്ളവർ','Everyone is up to date ✓':'എല്ലാവരും അടച്ചു ✓','Everyone has received ✓':'എല്ലാവർക്കും കിട്ടി ✓','Lot':'നറുക്ക്','Assigned':'നേരിട്ട്','Moderator':'നടത്തിപ്പുകാരൻ','Kuri details':'കുറി വിവരങ്ങൾ','Backup':'ബാക്കപ്പ്','Copy backup':'ബാക്കപ്പ് കോപ്പി','Restore':'തിരികെ കൊണ്ടുവരിക','Other':'മറ്റുള്ളവ','Switch / create another Kuri':'മറ്റൊരു കുറി','Delete this Kuri':'ഈ കുറി ഡിലീറ്റ് ചെയ്യുക','Add members first':'ആദ്യം അംഗങ്ങളെ ചേർക്കുക','Add members':'അംഗങ്ങളെ ചേർക്കുക','not paid this month yet.':'പേർ ഈ മാസം അടച്ചിട്ടില്ല.','Drawing from':'നറുക്കിലുള്ളത്','names':'പേരുകൾ','Winner of':'നറുക്ക് കിട്ടിയത്','receives':'ലഭിക്കുന്നത്','Done':'ശരി','Create new Kuri':'പുതിയ കുറി തുടങ്ങുക','Language':'ഭാഷ'};
+var ML={'This Month':'ഈ മാസം','Members':'അംഗങ്ങൾ','Reports':'റിപ്പോർട്ട്','Settings':'ക്രമീകരണം','Collection':'പിരിവ്','Total pot':'ആകെ കുറി തുക','Moderator share':'നടത്തിപ്പുകാരന്റെ വിഹിതം','Winner receives':'നറുക്ക് കിട്ടിയ ആൾക്ക്','Lot for':'നറുക്കെടുപ്പ്','🎲 Take Lot':'🎲 നറുക്കെടുക്കുക','🤝 Assign':'🤝 നേരിട്ട് നൽകുക','Names in the lot':'നറുക്കിലുള്ള പേരുകൾ','Already received':'ഇതിനകം കിട്ടിയവർ','Set behind (not in lot)':'പിന്നിലേക്ക് മാറ്റിയവർ','Set behind':'പിന്നിലേക്ക് മാറ്റുക','⏸ Behind':'⏸ പിന്നിൽ','Behind':'പിന്നിൽ','Won M':'കിട്ടി: മാസം ','Not paid':'അടച്ചില്ല','Paid':'അടച്ചു','Mark all paid':'എല്ലാവരും അടച്ചു','Clear all':'എല്ലാം മായ്ക്കുക','Payments':'അടവുകൾ','Payout handed over':'തുക കൈമാറി','Share on WhatsApp':'WhatsApp-ൽ അയക്കുക','Copy text':'കോപ്പി ചെയ്യുക','Undo this result':'ഈ ഫലം റദ്ദാക്കുക','🎲 Won by lot':'🎲 നറുക്കിലൂടെ','🤝 Assigned on request':'🤝 അഭ്യർത്ഥന പ്രകാരം','👤 Moderator month':'👤 നടത്തിപ്പുകാരന്റെ മാസം','Month':'മാസം','of':'/','paid':'പേർ അടച്ചു','pending':'ബാക്കി','all collected ✓':'മുഴുവൻ പിരിച്ചു ✓','Draw':'നറുക്ക്','Go to':'അടുത്ത മാസം:','Add member':'അംഗത്തെ ചേർക്കുക','Name':'പേര്','Phone':'ഫോൺ','+ Add':'+ ചേർക്കുക','Add many':'കൂട്ടമായി ചേർക്കുക','Edit':'മാറ്റുക','Search name or phone':'പേര് / ഫോൺ തിരയുക','members':'അംഗങ്ങൾ','received':'പേർക്ക് കിട്ടി','Months drawn':'നറുക്കെടുത്ത മാസങ്ങൾ','Total collected':'ആകെ പിരിച്ചത്','Moderator earned':'നടത്തിപ്പുകാരന്','Paid to winners':'വിജയികൾക്ക് നൽകിയത്','Pending dues':'കുടിശ്ശിക','up to':'വരെ','Remind':'ഓർമ്മിപ്പിക്കുക','Month by month':'മാസം തിരിച്ച്','Not drawn':'എടുത്തിട്ടില്ല','Still waiting':'ഇനി കിട്ടാനുള്ളവർ','Everyone is up to date ✓':'എല്ലാവരും അടച്ചു ✓','Everyone has received ✓':'എല്ലാവർക്കും കിട്ടി ✓','Lot':'നറുക്ക്','Assigned':'നേരിട്ട്','Moderator':'നടത്തിപ്പുകാരൻ','Kuri details':'കുറി വിവരങ്ങൾ','Backup':'ബാക്കപ്പ്','Copy backup':'ബാക്കപ്പ് കോപ്പി','Restore':'തിരികെ കൊണ്ടുവരിക','Other':'മറ്റുള്ളവ','Switch / create another Kuri':'മറ്റൊരു കുറി','Delete this Kuri':'ഈ കുറി ഡിലീറ്റ് ചെയ്യുക','Add members first':'ആദ്യം അംഗങ്ങളെ ചേർക്കുക','Add members':'അംഗങ്ങളെ ചേർക്കുക','not paid this month yet.':'പേർ ഈ മാസം അടച്ചിട്ടില്ല.','Drawing from':'നറുക്കിലുള്ളത്','names':'പേരുകൾ','Winner of':'നറുക്ക് കിട്ടിയത്','receives':'ലഭിക്കുന്നത്','Done':'ശരി','Create new Kuri':'പുതിയ കുറി തുടങ്ങുക','Language':'ഭാഷ','Member statement':'അംഗത്തിന്റെ സ്റ്റേറ്റ്മെന്റ്','Select a member…':'അംഗത്തെ തിരഞ്ഞെടുക്കുക…','Paid so far':'ഇതുവരെ അടച്ചത്','months':'മാസം','Kuri received':'കുറി ലഭിച്ചത്','Handed over ✓':'കൈമാറി ✓','Not handed over yet':'കൈമാറിയിട്ടില്ല','Not received yet':'ഇതുവരെ ലഭിച്ചില്ല','Still to pay':'ഇനി അടയ്ക്കാനുള്ളത്','Total for full Kuri':'മുഴുവൻ കുറിക്ക് ആകെ','Balance now (received − paid)':'ബാലൻസ് (ലഭിച്ചത് − അടച്ചത്)','Received':'ലഭിച്ചു','Upcoming':'വരാനുള്ളത്','Send to member':'അംഗത്തിന് അയക്കുക','Recent activity':'അടുത്തിടെയുള്ള മാറ്റങ്ങൾ','Waiting':'കാത്തിരിക്കുന്നു'};
 function L(x){return UI.lang==='ml'&&ML[x]||x}
 function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -168,7 +269,7 @@ function waLink(text,phone){var p=String(phone||'').replace(/\D/g,'');if(p.lengt
 
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
 function openModal(h){modalOpen=true;mroot.innerHTML='<div class="ov" data-a="ovclose"><div class="sheet">'+h+'</div></div>'}
-function closeModal(){mroot.innerHTML='';modalOpen=false;if(dirty)schedule(600)}
+function closeModal(){mroot.innerHTML='';modalOpen=false;if(pendingRender){pendingRender=false;render()}if(SY.code)return;if(dirty)schedule(600)}
 function confirmBox(title,msg,yes,fn,danger){pending=fn;openModal('<h2>'+esc(title)+'</h2><p class="m">'+msg+'</p><div class="btns mt"><button class="btn s" data-a="close">Cancel</button><button class="btn '+(danger?'r':'p')+'" data-a="yes">'+esc(yes)+'</button></div>')}
 
 /* ---------- views ---------- */
@@ -181,7 +282,7 @@ function viewHome(){
     h+='<button class="kcard" data-a="open" data-id="'+k.id+'"><b>'+esc(k.name)+'</b><small>'+money(k,k.amount)+' / month · '+k.members.length+' members · '+done+' of '+nMonths(k)+' months drawn</small></button>'});
   h+='<button class="btn p full" data-a="newKuri">+ '+L('Create new Kuri')+'</button>';
   if(!S.kuris.length)h+='<button class="btn s full mt" data-a="sample">Try with sample data (25 members)</button>';
-  h+='<button class="btn s full mt" data-a="importB">Restore from backup</button></main>';
+  h+='<button class="btn s full mt" data-a="importB">Restore from backup</button><div class="mt"></div>'+viewLive()+'</main>';
   return h;
 }
 function header(k){
@@ -243,14 +344,45 @@ function viewMembers(k){
   h+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">'+k.members.length+' '+L('members')+'</h3><span class="mut" style="font-size:12px">'+Object.keys(w).length+' '+L('received')+'</span></div><input class="inp srch mt" id="msearch" placeholder="'+L('Search name or phone')+'"><div class="list" id="mlist">';
   if(!k.members.length)h+='<p class="mut tc">No members yet.</p>';
   k.members.forEach(function(x,ix){var wm=wonMonth(k,x.id);
-    h+='<div class="it" data-s="'+esc((x.name+' '+(x.phone||'')).toLowerCase())+'"><span class="num">'+(ix+1)+'</span><div class="grow"><b>'+esc(x.name)+'</b><small>'+esc(x.phone||'—')+(x.hold&&x.holdNote?' · '+esc(x.holdNote):'')+'</small></div>'+(wm>=0?'<span class="tag won">'+L('Won M')+(wm+1)+'</span>':'<button class="ib '+(x.hold?'on':'')+'" data-a="hold" data-id="'+x.id+'">'+(x.hold?L('⏸ Behind'):L('Set behind'))+'</button>')+'<button class="ib" data-a="editM" data-id="'+x.id+'">'+L('Edit')+'</button></div>'});
+    h+='<div class="it" data-s="'+esc((x.name+' '+(x.phone||'')).toLowerCase())+'"><span class="num">'+(ix+1)+'</span><div class="grow"><b>'+esc(x.name)+'</b><small>'+esc(x.phone||'—')+(x.hold&&x.holdNote?' · '+esc(x.holdNote):'')+'</small></div>'+(wm>=0?'<span class="tag won">'+L('Won M')+(wm+1)+'</span>':'<button class="ib '+(x.hold?'on':'')+'" data-a="hold" data-id="'+x.id+'">'+(x.hold?L('⏸ Behind'):L('Set behind'))+'</button>')+'<button class="ib" data-a="stmt" data-id="'+x.id+'">📄</button><button class="ib" data-a="editM" data-id="'+x.id+'">'+L('Edit')+'</button></div>'});
   h+='</div></div><p class="mut" style="font-size:12px;padding:0 6px">“Set behind” keeps a member out of the lot until you remove it — for members who asked to take later.</p>';
   return h;
 }
+function stmtData(k,x){
+  var n=nMonths(k),cur=firstOpen(k),wm=wonMonth(k,x.id),rows=[],pc=0,dc=0,uc=0;
+  for(var i=0;i<n;i++){var m=k.months[i]||{},p=m.paid&&m.paid[x.id],st;
+    if(p){st='paid';pc++}else if(i<=cur){st='due';dc++}else{st='up';uc++}
+    rows.push({i:i,st:st,p:p,won:i===wm})}
+  var rec=wm>=0?payoutOf(k,wm):0,wmo=wm>=0?k.months[wm]:null;
+  return {n:n,rows:rows,pc:pc,dc:dc,uc:uc,paid:pc*k.amount,due:dc*k.amount,up:uc*k.amount,total:n*k.amount,wm:wm,rec:rec,handed:!!(wmo&&wmo.payoutDone),bal:rec-pc*k.amount};
+}
+function stmtText(k,x){var d=stmtData(k,x),ml=UI.lang==='ml';
+  var t='*'+k.name+'* — '+(ml?'അക്കൗണ്ട് സ്റ്റേറ്റ്മെന്റ്':'Statement')+'\n'+x.name+'\n\n';
+  t+=(ml?'അടച്ചത്: ':'Paid: ')+money(k,d.paid)+' ('+d.pc+'/'+d.n+')\n';
+  if(d.dc)t+=(ml?'കുടിശ്ശിക: ':'Pending dues: ')+money(k,d.due)+' ('+d.dc+')\n';
+  t+=(ml?'ഇനി അടയ്ക്കാനുള്ളത്: ':'Still to pay: ')+money(k,d.up+d.due)+'\n';
+  t+=d.wm>=0?(ml?'കുറി ലഭിച്ചത്: ':'Kuri received: ')+money(k,d.rec)+' ('+mLabel(k,d.wm)+')'+(d.handed?' ✓':'')+'\n':(ml?'കുറി ഇതുവരെ ലഭിച്ചിട്ടില്ല':'Kuri not received yet')+'\n';
+  t+='\n';d.rows.forEach(function(r){t+=mLabel(k,r.i)+': '+(r.st==='paid'?'✅ '+(typeof r.p==='string'?r.p:''):r.st==='due'?'❌ '+(ml?'അടച്ചില്ല':'Not paid'):'—')+(r.won?' 🏆':'')+'\n'});
+  return t}
+function viewStmt(k){
+  UI.stmt=UI.stmt||{};var sel=UI.stmt[k.id]||'',x=sel?mem(k,sel):null;
+  var h='<div class="card"><h3>'+L('Member statement')+'</h3><select class="inp" id="stmtSel"><option value="">'+L('Select a member…')+'</option>'+k.members.map(function(m){return '<option value="'+m.id+'"'+(m.id===sel?' selected':'')+'>'+esc(m.name)+'</option>'}).join('')+'</select>';
+  if(x){var d=stmtData(k,x);
+    h+='<div class="mt" style="display:flex;align-items:center;gap:10px"><div class="grow"><b style="font-size:18px">'+esc(x.name)+'</b><small>'+esc(x.phone||'')+'</small></div>'+(d.wm>=0?'<span class="tag won">🏆 '+mLabel(k,d.wm)+'</span>':x.hold?'<span class="tag hold">'+L('Behind')+'</span>':'<span class="tag wait">'+L('Waiting')+'</span>')+'</div>';
+    h+='<div class="stats mt" style="margin-bottom:6px"><div class="stat" style="background:var(--gl)"><small>'+L('Paid so far')+'</small><b>'+money(k,d.paid)+'</b><small>'+d.pc+' / '+d.n+' '+L('months')+'</small></div><div class="stat" style="background:'+(d.dc?'var(--redl)':'var(--bg)')+'"><small>'+L('Pending dues')+'</small><b style="color:'+(d.dc?'var(--red)':'inherit')+'">'+money(k,d.due)+'</b><small>'+d.dc+' '+L('months')+'</small></div>'+
+      '<div class="stat" style="background:var(--goldl)"><small>'+L('Kuri received')+'</small><b>'+(d.wm>=0?money(k,d.rec):'—')+'</b><small>'+(d.wm>=0?(d.handed?L('Handed over ✓'):L('Not handed over yet')):L('Not received yet'))+'</small></div><div class="stat" style="background:var(--bg)"><small>'+L('Still to pay')+'</small><b>'+money(k,d.up+d.due)+'</b><small>'+(d.uc+d.dc)+' '+L('months')+'</small></div></div>';
+    h+='<div class="kv"><span>'+L('Total for full Kuri')+'</span><b>'+money(k,d.total)+'</b></div><div class="kv"><span>'+L('Balance now (received − paid)')+'</span><b style="color:'+(d.bal<0?'var(--red)':'var(--g)')+'">'+(d.bal<0?'−':'+')+money(k,Math.abs(d.bal))+'</b></div>';
+    h+='<div class="list mt">'+d.rows.map(function(r){return '<div class="it"><span class="num">'+(r.i+1)+'</span><div class="grow"><b>'+mLabel(k,r.i)+(r.won?' · 🏆 '+L('Received')+' '+money(k,d.rec):'')+'</b></div>'+(r.st==='paid'?'<span class="tag ok">✓ '+L('Paid')+(typeof r.p==='string'?' '+esc(r.p):'')+'</span>':r.st==='due'?'<span class="tag due">'+L('Not paid')+'</span>':'<span class="tag wait">'+L('Upcoming')+'</span>')+'</div>'}).join('')+'</div>';
+    h+='<div class="btns mt"><a class="btn wa sm" href="'+waLink(stmtText(k,x),x.phone)+'" target="_blank" rel="noopener">'+L('Send to member')+'</a><button class="btn s sm" data-a="copyStmt" data-id="'+x.id+'">'+L('Copy text')+'</button></div>';
+  }
+  return h+'</div>';
+}
+function viewLog(k){var lg=(S.log||[]).filter(function(e){return e.k===k.id}).slice(0,25);if(!lg.length)return '';
+  return '<div class="card"><h3>'+L('Recent activity')+'</h3><div class="list">'+lg.map(function(e){return '<div class="it"><div class="grow"><b style="font-weight:600;white-space:normal">'+esc(e.x)+'</b><small>'+(e.by?esc(e.by)+' · ':'')+new Date(e.t).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'</small></div></div>'}).join('')+'</div></div>'}
 function viewHistory(k){
   var n=nMonths(k),done=0,coll=0,comm=0,out=0,cur=firstOpen(k);
   for(var i=0;i<n;i++){var m=k.months[i];if(!m)continue;var pc=Object.keys(m.paid||{}).filter(function(id){return mem(k,id)}).length;coll+=pc*k.amount;if(m.winner){done++;comm+=commOf(k,i);if(m.method!=='mod'&&m.payoutDone)out+=payoutOf(k,i)}}
-  var h='<div class="stats"><div class="stat"><small>'+L('Months drawn')+'</small><b>'+done+' / '+n+'</b></div><div class="stat"><small>'+L('Total collected')+'</small><b>'+money(k,coll)+'</b></div><div class="stat"><small>'+L('Moderator earned')+'</small><b>'+money(k,comm)+'</b></div><div class="stat"><small>'+L('Paid to winners')+'</small><b>'+money(k,out)+'</b></div></div>';
+  var h=viewStmt(k)+'<div class="stats"><div class="stat"><small>'+L('Months drawn')+'</small><b>'+done+' / '+n+'</b></div><div class="stat"><small>'+L('Total collected')+'</small><b>'+money(k,coll)+'</b></div><div class="stat"><small>'+L('Moderator earned')+'</small><b>'+money(k,comm)+'</b></div><div class="stat"><small>'+L('Paid to winners')+'</small><b>'+money(k,out)+'</b></div></div>';
   // dues
   var dues=[];k.members.forEach(function(x){var c=0,ms=[];for(var i=0;i<=cur;i++){var m=k.months[i];if(!(m&&m.paid&&m.paid[x.id])){c++;ms.push(mLabel(k,i))}}if(c)dues.push({x:x,c:c,ms:ms})});
   h+='<div class="card"><h3>'+L('Pending dues')+' ('+(UI.lang==='ml'?mLabel(k,cur)+' '+L('up to'):'up to '+mLabel(k,cur))+')</h3><div class="list">';
@@ -265,7 +397,7 @@ function viewHistory(k){
   h+='</div></div>';
   // waiting
   var w=winners(k),wait=k.members.filter(function(x){return !w[x.id]});
-  h+='<div class="card"><h3>'+L('Still waiting')+' ('+wait.length+')</h3><div class="chips">'+(wait.map(function(x){return '<span class="tag '+(x.hold?'hold':'wait')+'">'+(x.hold?'⏸ ':'')+esc(x.name)+'</span>'}).join('')||'<span class="mut">'+L('Everyone has received ✓')+'</span>')+'</div></div>';
+  h+='<div class="card"><h3>'+L('Still waiting')+' ('+wait.length+')</h3><div class="chips">'+(wait.map(function(x){return '<span class="tag '+(x.hold?'hold':'wait')+'">'+(x.hold?'⏸ ':'')+esc(x.name)+'</span>'}).join('')||'<span class="mut">'+L('Everyone has received ✓')+'</span>')+'</div></div>'+viewLog(k);
   return h;
 }
 function kuriForm(k,isNew){
@@ -279,7 +411,7 @@ function kuriForm(k,isNew){
   '<div class="btns" style="margin-top:16px">'+(isNew?'<button class="btn s" type="button" data-a="close">Cancel</button>':'')+'<button class="btn p" type="submit">'+(isNew?'Create Kuri':'Save changes')+'</button></div></form>';
 }
 function viewMore(k){
-  return '<div class="card"><h3>'+L('Kuri details')+'</h3>'+kuriForm(k,false)+'</div>'+
+  return viewLive()+'<div class="card"><h3>'+L('Kuri details')+'</h3>'+kuriForm(k,false)+'</div>'+
   '<div class="card"><h3>'+L('Language')+'</h3><div class="btns"><button class="btn '+(UI.lang!=='ml'?'p':'s')+'" data-a="setLang" data-l="en">English</button><button class="btn '+(UI.lang==='ml'?'p':'s')+'" data-a="setLang" data-l="ml">മലയാളം</button></div></div><div class="card"><h3>'+L('Backup')+'</h3><p class="mut" style="margin-top:0;font-size:13px">Copy all data and keep it in WhatsApp/Notes as a backup.</p><div class="btns"><button class="btn s" data-a="copyB">'+L('Copy backup')+'</button><button class="btn s" data-a="importB">'+L('Restore')+'</button></div></div>'+
   '<div class="card"><h3>'+L('Other')+'</h3><button class="btn s full" data-a="home">'+L('Switch / create another Kuri')+'</button><button class="btn r full mt" data-a="delK">'+L('Delete this Kuri')+'</button></div>';
 }
@@ -299,7 +431,7 @@ function runLot(k,i){
   function step(){var j;do{j=Math.floor(Math.random()*el.length)}while(el.length>1&&j===last);last=j;nameEl.textContent=el[j].name;delay*=1.075;if(delay<430)setTimeout(step,delay);else setTimeout(reveal,500)}
   function reveal(){
     nameEl.textContent=win.name;document.getElementById('lotBox').className='lot-box win';
-    var m=M(k,i);m.winner=win.id;m.method='lot';m.at=Date.now();m.pool=el.length;m.note='';
+    var m=M(k,i);UI.m[k.id]=i;saveUI();m.winner=win.id;m.method='lot';addLog(k,'🎲 Lot winner: '+win.name+' · '+mLabel(k,i));m.at=Date.now();m.pool=el.length;m.note='';
     var held=k.members.filter(function(x){return x.hold&&!winners(k)[x.id]&&x.id!==win.id});if(held.length)m.note='Set behind (not in lot): '+held.map(function(x){return x.name}).join(', ');
     commit();
     document.getElementById('lotSub').innerHTML='🎉 '+L('Winner of')+' '+mLabel(k,i)+' · '+L('receives')+' <b>'+money(k,payoutOf(k,i))+'</b>';
@@ -311,7 +443,7 @@ function runLot(k,i){
 function confetti(){var box=mroot.querySelector('.lot');if(!box)return;var cs=['#f3d27a','#fff','#2fa274','#ff8a65','#7fb3ff'];for(var i=0;i<60;i++){var s=document.createElement('i');s.className='cf';s.style.left=Math.random()*100+'%';s.style.background=cs[i%cs.length];s.style.animationDuration=(2+Math.random()*2.5)+'s';s.style.animationDelay=(Math.random()*.6)+'s';box.appendChild(s)}}
 
 /* ---------- actions ---------- */
-function guard(){if(readOnly){toast('View only — changes are not allowed');return false}return true}
+function guard(){if(SY.code&&live.state!=='live'&&live.state!=='saving'){toast(live.state==='connecting'?'Connecting… try again in a moment':'Not connected — check internet');return false}if(readOnly){toast('View only — changes are not allowed');return false}return true}
 function act(a,d){
   var k=K();
   switch(a){
@@ -331,29 +463,35 @@ function act(a,d){
   case 'importB':if(!guard())return;openModal('<h2>Restore backup</h2><p class="m">Paste the backup text you copied earlier. It replaces all current data.</p><form data-f="imp"><textarea class="inp" name="t" rows="7" required></textarea><div class="btns mt"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Restore</button></div></form>');return;
   case 'lang':UI.lang=UI.lang==='ml'?'en':'ml';saveUI();render();return;
   case 'setLang':UI.lang=d.l;saveUI();render();return;
+  case 'liveNew':if(!FIREBASE_CONFIG&&!window.__KURI_FB)return;openModal('<h2>Create live group</h2><p class="m">This phone\'s Kuri data is uploaded. Your partner joins with the code you get.</p><form data-f="liveNew"><label class="f">Your name</label><input class="inp" name="name" required placeholder="e.g. Rashid (UAE)"><div class="btns" style="margin-top:16px"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Create</button></div></form>');return;
+  case 'liveJoinF':openModal('<h2>Join live group</h2><p class="m">Paste the code your partner sent. <b>The data on this phone will be replaced</b> by the group data.</p><form data-f="liveJoin"><label class="f">Your name</label><input class="inp" name="name" required placeholder="e.g. Friend (India)"><label class="f">Group code</label><input class="inp" name="code" required autocomplete="off" autocapitalize="off" placeholder="rkp-xxxx-xxxx-…"><div class="btns" style="margin-top:16px"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Join</button></div></form>');return;
+  case 'liveRetry':liveStart();return;
+  case 'liveLeave':confirmBox('Turn off live mode?','This phone stops syncing. The data stays on this phone and in the group for your partner.','Turn off',liveLeave,true);return;
+  case 'stmt':UI.tab='history';UI.stmt=UI.stmt||{};var kk=K();if(kk)UI.stmt[kk.id]=d.id;saveUI();render();window.scrollTo(0,0);return;
+  case 'copyStmt':var kc=K();if(kc){var sm=mem(kc,d.id);if(sm)copy(stmtText(kc,sm))}return;
   case 'lotDone':closeModal();window.scrollTo(0,0);return;
   }
   if(!k||!guard())return;
   var i=curM(k);
   switch(a){
-  case 'pay':var m=M(k,i);if(m.paid[d.id])delete m.paid[d.id];else m.paid[d.id]=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'});commit();return;
+  case 'pay':var m=M(k,i),pm=mem(k,d.id);if(m.paid[d.id]){delete m.paid[d.id];addLog(k,'Unmarked payment: '+(pm?pm.name:'')+' · '+mLabel(k,i))}else{m.paid[d.id]=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'});addLog(k,'Paid: '+(pm?pm.name:'')+' · '+mLabel(k,i))}commit();return;
   case 'allPaid':var m2=M(k,i),all=k.members.every(function(x){return m2.paid[x.id]});
-    if(all)confirmBox('Clear all payments?','Unmark every payment for '+mLabel(k,i)+'.','Clear',function(){m2.paid={};commit()},true);
-    else{var dt=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'});k.members.forEach(function(x){if(!m2.paid[x.id])m2.paid[x.id]=dt});commit()}return;
+    if(all)confirmBox('Clear all payments?','Unmark every payment for '+mLabel(k,i)+'.','Clear',function(){m2.paid={};addLog(k,'Cleared all payments · '+mLabel(k,i));commit()},true);
+    else{var dt=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'});k.members.forEach(function(x){if(!m2.paid[x.id])m2.paid[x.id]=dt});addLog(k,'Marked all paid · '+mLabel(k,i));commit()}return;
   case 'lot':var el=eligible(k);var pp=(k.months[i]&&k.months[i].paid)||{};var pc=k.members.filter(function(x){return pp[x.id]}).length;
     confirmBox('Take the lot for '+mLabel(k,i)+'?',el.length+' names are in the lot'+(pc<k.members.length?' · <b>'+(k.members.length-pc)+' not paid yet</b>':'')+'. The result is saved immediately.','🎲 Start',function(){runLot(k,i)});return;
   case 'assign':var w=winners(k),opts=k.members.filter(function(x){return !w[x.id]});
     if(!opts.length)return toast('Everyone has already received');
     openModal('<h2>Assign '+mLabel(k,i)+'</h2><p class="m">Give this month to a member on request (help / need), without the lot.</p><form data-f="assign"><label class="f">Member</label><select class="inp" name="id" required>'+opts.map(function(x){return '<option value="'+x.id+'">'+esc(x.name)+(x.hold?' (behind)':'')+'</option>'}).join('')+'</select><label class="f">Reason / note</label><input class="inp" name="note" placeholder="e.g. Requested for family function"><div class="btns" style="margin-top:16px"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Assign</button></div></form>');return;
-  case 'modMonth':var mm=M(k,0);mm.winner='MOD';mm.method='mod';mm.at=Date.now();commit();return;
-  case 'undo':confirmBox('Undo result?','Remove <b>'+esc(wname(k,k.months[i].winner))+'</b> as the '+mLabel(k,i)+' result. Payments stay as they are.','Undo',function(){var x=k.months[i];delete x.winner;delete x.method;delete x.at;delete x.pool;delete x.note;delete x.payoutDone;delete x.payoutAt;commit()},true);return;
-  case 'payout':var mp=k.months[i];mp.payoutDone=!mp.payoutDone;mp.payoutAt=mp.payoutDone?Date.now():null;commit();return;
-  case 'hold':var mh=mem(k,d.id);if(!mh)return;if(mh.hold){mh.hold=false;mh.holdNote='';commit()}else{openModal('<h2>Set '+esc(mh.name)+' behind</h2><p class="m">They will not be in the lot until you remove this. You can still assign a month to them.</p><form data-f="hold" data-id="'+mh.id+'"><label class="f">Note (optional)</label><input class="inp" name="note" placeholder="e.g. Wants to take after Ramadan"><div class="btns" style="margin-top:16px"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Set behind</button></div></form>')}return;
+  case 'modMonth':UI.m[k.id]=0;saveUI();var mm=M(k,0);mm.winner='MOD';mm.method='mod';mm.at=Date.now();addLog(k,'Moderator month confirmed · '+mLabel(k,0));commit();return;
+  case 'undo':confirmBox('Undo result?','Remove <b>'+esc(wname(k,k.months[i].winner))+'</b> as the '+mLabel(k,i)+' result. Payments stay as they are.','Undo',function(){addLog(k,'Undo result: '+wname(k,k.months[i].winner)+' · '+mLabel(k,i));var x=k.months[i];delete x.winner;delete x.method;delete x.at;delete x.pool;delete x.note;delete x.payoutDone;delete x.payoutAt;commit()},true);return;
+  case 'payout':var mp=k.months[i];mp.payoutDone=!mp.payoutDone;mp.payoutAt=mp.payoutDone?Date.now():null;addLog(k,(mp.payoutDone?'Payout handed over: ':'Payout unmarked: ')+wname(k,mp.winner)+' · '+mLabel(k,i));commit();return;
+  case 'hold':var mh=mem(k,d.id);if(!mh)return;if(mh.hold){mh.hold=false;mh.holdNote='';addLog(k,'Removed hold: '+mh.name);commit()}else{openModal('<h2>Set '+esc(mh.name)+' behind</h2><p class="m">They will not be in the lot until you remove this. You can still assign a month to them.</p><form data-f="hold" data-id="'+mh.id+'"><label class="f">Note (optional)</label><input class="inp" name="note" placeholder="e.g. Wants to take after Ramadan"><div class="btns" style="margin-top:16px"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Set behind</button></div></form>')}return;
   case 'editM':var me=mem(k,d.id);if(!me)return;openModal('<h2>Edit member</h2><form data-f="editM" data-id="'+me.id+'"><label class="f">Name</label><input class="inp" name="name" required value="'+esc(me.name)+'"><label class="f">Phone</label><input class="inp" name="phone" inputmode="tel" value="'+esc(me.phone||'')+'"><div class="btns" style="margin-top:16px"><button class="btn r" type="button" data-a="delM" data-id="'+me.id+'">Delete</button><button class="btn p" type="submit">Save</button></div></form>');return;
   case 'delM':var md=mem(k,d.id);if(wonMonth(k,d.id)>=0){toast('This member already received — undo that month first');return}
-    closeModal();confirmBox('Delete '+md.name+'?','Their payment records will be removed too.','Delete',function(){k.members=k.members.filter(function(x){return x.id!==d.id});for(var j in k.months){if(k.months[j]&&k.months[j].paid)delete k.months[j].paid[d.id]}commit()},true);return;
+    closeModal();confirmBox('Delete '+md.name+'?','Their payment records will be removed too.','Delete',function(){addLog(k,'Deleted member: '+md.name);k.members=k.members.filter(function(x){return x.id!==d.id});for(var j in k.months){if(k.months[j]&&k.months[j].paid)delete k.months[j].paid[d.id]}commit()},true);return;
   case 'bulk':openModal('<h2>Add many members</h2><p class="m">One per line. Add a phone after a comma: <i>Faisal, 9876543210</i></p><form data-f="bulk"><textarea class="inp" name="t" rows="9" required></textarea><div class="btns mt"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Add all</button></div></form>');return;
-  case 'delK':confirmBox('Delete '+k.name+'?','All members, payments and lot results of this Kuri will be removed. Copy a backup first if unsure.','Delete Kuri',function(){S.kuris=S.kuris.filter(function(x){return x.id!==k.id});S.activeId=null;commit()},true);return;
+  case 'delK':confirmBox('Delete '+k.name+'?','All members, payments and lot results of this Kuri will be removed. Copy a backup first if unsure.','Delete Kuri',function(){addLog(null,'Deleted Kuri: '+k.name);S.kuris=S.kuris.filter(function(x){return x.id!==k.id});S.activeId=null;commit()},true);return;
   }
 }
 function copy(t){if(window.__kuriShare){window.__kuriShare(t).catch(function(){showCopy(t)});return}try{navigator.clipboard.writeText(t).then(function(){toast('Copied ✓')},function(){showCopy(t)})}catch(e){showCopy(t)}}
@@ -361,19 +499,21 @@ function showCopy(t){openModal('<h2>Copy this text</h2><textarea class="inp" row
 function readKuri(fd,k){k.name=fd.get('name').trim();k.amount=+fd.get('amount');k.currency=fd.get('currency');k.start=fd.get('start');k.drawDay=+fd.get('drawDay')||'';k.moderator=fd.get('moderator').trim();k.commMode=fd.get('commMode');k.commValue=+fd.get('commValue')||0;return k}
 function onSubmit(f){
   var fd=new FormData(f),t=f.dataset.f,k=K();
-  if(!guard())return;
-  if(t==='newK'){var nk=readKuri(fd,{id:uid(),members:[],months:{},created:Date.now()});S.kuris.push(nk);S.activeId=nk.id;UI.tab='members';saveUI();closeModal();commit();return}
+  if(t!=='liveNew'&&t!=='liveJoin'&&!guard())return;
+  if(t==='liveNew'){closeModal();liveCreate(fd.get('name').trim());return}
+  if(t==='liveJoin'){liveJoin(fd.get('code'),fd.get('name').trim());return}
+  if(t==='newK'){var nk=readKuri(fd,{id:uid(),members:[],months:{},created:Date.now()});S.kuris.push(nk);S.activeId=nk.id;addLog(nk,'Created Kuri: '+nk.name);UI.tab='members';saveUI();closeModal();commit();return}
   if(t==='imp'){var o;try{o=JSON.parse(fd.get('t'))}catch(e){return toast('That is not a valid backup')}
     if(o&&o.kuris){S=o}else if(o&&o.members&&o.months){o.id=uid();S.kuris.push(o);S.activeId=o.id}else return toast('That is not a valid backup');
     closeModal();commit();toast('Restored ✓');return}
   if(!k)return;
   var i=curM(k);
-  if(t==='editK'){var oldN=k.members.length;readKuri(fd,k);commit();toast('Saved ✓');return}
-  if(t==='addM'){var nm=fd.get('name').trim();if(!nm)return;k.members.push({id:uid(),name:nm,phone:fd.get('phone').trim(),hold:false});commit();setTimeout(function(){var x=app.querySelector('[data-f=addM] [name=name]');if(x)x.focus()},30);return}
-  if(t==='bulk'){var c=0;fd.get('t').split(/\n/).forEach(function(l){var p=l.split(',');var n=(p[0]||'').trim();if(n){k.members.push({id:uid(),name:n,phone:(p[1]||'').trim(),hold:false});c++}});closeModal();commit();toast(c+' members added');return}
-  if(t==='editM'){var m=mem(k,f.dataset.id);m.name=fd.get('name').trim()||m.name;m.phone=fd.get('phone').trim();closeModal();commit();return}
-  if(t==='hold'){var mh=mem(k,f.dataset.id);mh.hold=true;mh.holdNote=fd.get('note').trim();closeModal();commit();return}
-  if(t==='assign'){var mo=M(k,i),id=fd.get('id'),am=mem(k,id);mo.winner=id;mo.method='assign';mo.at=Date.now();mo.pool=0;mo.note=fd.get('note').trim();if(am){am.hold=false}closeModal();commit();toast(am.name+' assigned for '+mLabel(k,i));return}
+  if(t==='editK'){readKuri(fd,k);addLog(k,'Edited Kuri details');commit();toast('Saved ✓');return}
+  if(t==='addM'){var nm=fd.get('name').trim();if(!nm)return;k.members.push({id:uid(),name:nm,phone:fd.get('phone').trim(),hold:false});addLog(k,'Added member: '+nm);commit();setTimeout(function(){var x=app.querySelector('[data-f=addM] [name=name]');if(x)x.focus()},30);return}
+  if(t==='bulk'){var c=0;fd.get('t').split(/\n/).forEach(function(l){var p=l.split(',');var n=(p[0]||'').trim();if(n){k.members.push({id:uid(),name:n,phone:(p[1]||'').trim(),hold:false});c++}});addLog(k,'Added '+c+' members');closeModal();commit();toast(c+' members added');return}
+  if(t==='editM'){var m=mem(k,f.dataset.id);m.name=fd.get('name').trim()||m.name;m.phone=fd.get('phone').trim();addLog(k,'Edited member: '+m.name);closeModal();commit();return}
+  if(t==='hold'){var mh=mem(k,f.dataset.id);mh.hold=true;mh.holdNote=fd.get('note').trim();addLog(k,'Set behind: '+mh.name+(mh.holdNote?' ('+mh.holdNote+')':''));closeModal();commit();return}
+  if(t==='assign'){UI.m[k.id]=i;saveUI();var mo=M(k,i),id=fd.get('id'),am=mem(k,id);mo.winner=id;mo.method='assign';mo.at=Date.now();mo.pool=0;mo.note=fd.get('note').trim();if(am){am.hold=false}addLog(k,'🤝 Assigned: '+(am?am.name:'')+' · '+mLabel(k,i)+(mo.note?' ('+mo.note+')':''));closeModal();commit();toast(am.name+' assigned for '+mLabel(k,i));return}
 }
 function sample(){
   var names=['Abdul Rahman','Shameer K','Faisal P','Muhammed Ali','Ashraf V','Noushad','Jaseem','Rasheed','Sajid','Anwar','Haris','Shafeeq','Riyas','Nizar','Salim','Basheer','Junaid','Irshad','Fasil','Hakeem','Unais','Jabir','Mansoor','Nazeer','Sidheeq'];
@@ -385,8 +525,10 @@ function sample(){
 app.addEventListener('click',function(e){var t=e.target.closest('[data-a]');if(!t||t.tagName==='A')return;e.preventDefault();act(t.dataset.a,t.dataset)});
 mroot.addEventListener('click',function(e){var t=e.target.closest('[data-a]');if(!t||t.tagName==='A')return;if(t.dataset.a==='ovclose'&&e.target!==t)return;if(t.dataset.a==='ovclose'){if(!mroot.querySelector('.lot'))closeModal();return}e.preventDefault();act(t.dataset.a,t.dataset)});
 document.addEventListener('submit',function(e){e.preventDefault();onSubmit(e.target)});
+app.addEventListener('change',function(e){if(e.target.id!=='stmtSel')return;var k=K();if(!k)return;UI.stmt=UI.stmt||{};UI.stmt[k.id]=e.target.value;saveUI();render()});
 app.addEventListener('input',function(e){if(e.target.id!=='msearch')return;var q=e.target.value.toLowerCase().trim();app.querySelectorAll('#mlist .it').forEach(function(r){r.style.display=!q||r.dataset.s.indexOf(q)>=0?'':'none'})});
 render();
+if(SY.code)liveStart();
 try{var sy=sessionStorage.getItem('kuri-scroll');if(sy){sessionStorage.removeItem('kuri-scroll');setTimeout(function(){window.scrollTo(0,+sy)},30)}}catch(e){}
 })();
 </script><script>if('serviceWorker' in navigator&&location.protocol==='https:'&&!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())){navigator.serviceWorker.register('sw.js').catch(function(){})}
