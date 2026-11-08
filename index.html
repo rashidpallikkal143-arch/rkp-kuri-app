@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"><title>RKP കുറി</title><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="RKP കുറി"><meta name="theme-color" content="#0f4d36"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.json"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style id="appcss">
+:root{--g:#0f4d36;--g2:#16694a;--gl:#e3f1ea;--gold:#c9961a;--goldl:#fbf1d6;--bg:#f3f1ec;--card:#fff;--ink:#1c2420;--mut:#6b746f;--line:#e6e3dc;--red:#b3261e;--redl:#fbe9e7;--blue:#1d5fa8;--bluel:#e5eefa}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;font-size:15px}
+#app{max-width:520px;margin:0 auto;min-height:100vh;padding-bottom:84px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.top{background:var(--g);color:#fff;padding:calc(16px + env(safe-area-inset-top)) 18px 18px;border-radius:0 0 22px 22px;position:relative}
+.top h1{margin:0;font-size:20px;font-weight:800;letter-spacing:-.2px}
+.top .sub{opacity:.82;font-size:13px;margin-top:3px}
+.top .row1{display:flex;align-items:center;gap:10px}
+.top .back{background:rgba(255,255,255,.14);border:0;color:#fff;width:34px;height:34px;border-radius:10px;font-size:18px;flex:none}
+.pill{font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;background:rgba(255,255,255,.16);white-space:nowrap;margin-left:auto}
+main{padding:22px 14px 0}
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card h3{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);font-weight:700}
+.msel{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:18px;padding:8px;margin-bottom:12px}
+.msel button{width:42px;height:42px;border-radius:12px;border:0;background:var(--bg);font-size:20px}
+.msel button:disabled{opacity:.3}
+.msel .c{text-align:center}.msel .c b{font-size:17px;display:block}.msel .c small{color:var(--mut);font-size:12px}
+.bar{height:10px;background:var(--bg);border-radius:99px;overflow:hidden;margin:10px 0 6px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g2),#2fa274);border-radius:99px}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.kv:last-child{border:0}.kv b{font-weight:700}.kv.big b{font-size:18px;color:var(--g)}
+.btn{border:0;border-radius:14px;padding:13px 16px;font-weight:700;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn.p{background:var(--g);color:#fff}.btn.gold{background:var(--gold);color:#fff}.btn.s{background:var(--bg);color:var(--ink)}.btn.r{background:var(--redl);color:var(--red)}.btn.wa{background:#1f9d55;color:#fff}
+.btn.full{width:100%}.btn.sm{padding:8px 12px;font-size:13px;border-radius:11px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}.btns .btn{flex:1}
+.list .it{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.list .it:last-child{border:0}
+.num{width:28px;height:28px;border-radius:9px;background:var(--bg);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--mut);flex:none}
+.grow{flex:1;min-width:0}.grow b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.grow small{color:var(--mut);font-size:12px}
+.chk{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:#fff;flex:none;display:grid;place-items:center;font-size:15px;color:#fff}
+.chk.on{background:var(--g2);border-color:var(--g2)}
+.tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.tag.won{background:var(--goldl);color:#8a6408}.tag.hold{background:var(--bluel);color:var(--blue)}.tag.wait{background:var(--bg);color:var(--mut)}.tag.due{background:var(--redl);color:var(--red)}.tag.ok{background:var(--gl);color:var(--g)}
+.ib{white-space:nowrap;border:0;background:var(--bg);border-radius:10px;padding:7px 9px;font-size:12px;font-weight:700;flex:none}
+.ib.on{background:var(--bluel);color:var(--blue)}
+.winner{text-align:center;padding:8px 0 4px}
+.winner .crown{font-size:34px}.winner .nm{font-size:24px;font-weight:800;color:var(--g);margin:4px 0}
+.winner .meth{display:inline-block;margin-bottom:8px}
+.note{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--mut);margin:8px 0;text-align:left}
+.warn{background:var(--goldl);color:#7a5806;border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:5}
+nav .in{display:flex;width:100%;max-width:520px}
+nav button{flex:1;border:0;background:none;padding:9px 0 10px;font-size:11px;font-weight:700;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button span{font-size:20px;line-height:1}
+nav button.on{color:var(--g)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border-radius:16px;padding:13px}.stat small{color:var(--mut);font-size:12px;font-weight:600}.stat b{display:block;font-size:19px;margin-top:3px}
+label.f{display:block;font-size:12px;font-weight:700;color:var(--mut);margin:10px 0 5px}
+.inp{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px;background:#fff;font-size:15px;outline:none}
+.inp:focus{border-color:var(--g2)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.addrow{display:flex;gap:8px}.addrow .inp{flex:1;min-width:0}
+.ov{position:fixed;inset:0;background:rgba(10,20,15,.55);z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:fi .15s}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:22px 22px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;animation:su .2s}
+.sheet h2{margin:0 0 4px;font-size:19px}.sheet p.m{color:var(--mut);margin:0 0 8px;font-size:14px}
+@keyframes fi{from{opacity:0}}@keyframes su{from{transform:translateY(40px)}}
+.lot{position:fixed;inset:0;z-index:30;background:radial-gradient(circle at 50% 35%,#1d7a55,#0a3324);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;overflow:hidden}
+.lot-t{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;opacity:.75;font-weight:700}
+.lot-box{margin:22px 0 14px;width:100%;max-width:380px;min-height:120px;border-radius:24px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.18);display:grid;place-items:center;padding:20px}
+#lotName{font-size:30px;font-weight:800;line-height:1.2}
+.lot-box.win{background:var(--gold);border-color:#f3d27a;animation:pop .5s}
+@keyframes pop{0%{transform:scale(.85)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+.lot-sub{opacity:.8;font-size:14px;min-height:20px}
+#lotAct{margin-top:22px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:10px}
+.cf{position:absolute;top:-20px;width:10px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#1c2420;color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;z-index:40;max-width:90%;text-align:center}
+.empty{text-align:center;padding:30px 10px;color:var(--mut)}.empty .e{font-size:44px}
+.kcard{display:block;width:100%;text-align:left;border:0;background:var(--card);border-radius:18px;padding:16px;margin-bottom:10px}
+.kcard b{font-size:17px}.kcard small{display:block;color:var(--mut);margin-top:3px}
+.ro{background:var(--bluel);color:var(--blue);font-size:13px;padding:9px 14px;text-align:center;font-weight:600}
+.srch{margin-bottom:8px}
+.hist .it{align-items:flex-start}
+.lang{position:absolute;right:18px;bottom:-14px;border:0;background:var(--gold);color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border-radius:99px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.mut{color:var(--mut)}.tc{text-align:center}.mt{margin-top:10px}
+</style></head><body><div id="app"></div><div id="modal-root"></div><script id="state" type="application/json">{"v":1,"savedAt":0,"activeId":null,"kuris":[]}</script><script id="native">
+(function(){
+  var C=window.Capacitor;if(!C||!C.isNativePlatform||!C.isNativePlatform())return;
+  var P=C.Plugins||{},KEY='kuri-manager-v1';
+  /* mirror data into native storage so it survives the OS clearing web storage */
+  try{var orig=localStorage.setItem.bind(localStorage);
+    localStorage.setItem=function(k,v){orig(k,v);if(k===KEY&&P.Preferences)P.Preferences.set({key:KEY,value:v})};
+    if(P.Preferences){P.Preferences.get({key:KEY}).then(function(r){
+      var cur=null;try{cur=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+      var nat=null;try{nat=JSON.parse(r&&r.value)}catch(e){}
+      if(nat&&nat.kuris&&(!cur||(nat.savedAt||0)>(cur.savedAt||0))){orig(KEY,r.value);location.reload()}
+      else if(cur&&(!nat||(cur.savedAt||0)>(nat.savedAt||0)))P.Preferences.set({key:KEY,value:localStorage.getItem(KEY)});
+    })}
+  }catch(e){}
+  /* open WhatsApp / external links in the right app */
+  document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href^="http"]');if(!a)return;e.preventDefault();e.stopPropagation();
+    var u=a.getAttribute('href');if(P.AppLauncher)P.AppLauncher.openUrl({url:u}).catch(function(){location.href=u});else location.href=u},true);
+  /* native share for backup text */
+  window.__kuriShare=function(t){if(P.Share)return P.Share.share({title:'Kuri backup',text:t});return Promise.reject()};
+})();
+</script><script id="appjs">
+(function(){
+var CSS_SRC=document.getElementById('appcss').textContent;
+var JS_SRC=document.getElementById('appjs').textContent;
+var EMB;try{EMB=JSON.parse(document.getElementById('state').textContent)}catch(e){EMB=null}
+if(!EMB||!EMB.kuris)EMB={v:1,savedAt:0,activeId:null,kuris:[]};
+var LS='kuri-manager-v1',LSUI='kuri-manager-ui';
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+var S=EMB,loc=null;try{loc=JSON.parse(lsGet(LS))}catch(e){}
+var fromLocal=false;
+if(loc&&loc.kuris&&(loc.savedAt||0)>(EMB.savedAt||0)){S=loc;fromLocal=true}
+var UI={};try{UI=JSON.parse(lsGet(LSUI))||{}}catch(e){}
+if(!UI.m)UI.m={};
+var artifact=null,artReady=false,readOnly=false,dirty=false,saving=false,timer=null,modalOpen=false,pending=null;
+var app=document.getElementById('app'),mroot=document.getElementById('modal-root');
+
+function buildHTML(){
+  var json=JSON.stringify(S).replace(/</g,'\\u003c');
+  return '<!DOCTYPE html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>RKP കുറി</title><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style id="appcss">'+CSS_SRC+'</style></head><body><div id="app"></div><div id="modal-root"></div><script id="state" type="application/json">'+json+'<\/script><script id="appjs">'+JS_SRC+'<\/script></body></html>';
+}
+function saveUI(){lsSet(LSUI,JSON.stringify(UI))}
+function commit(){S.savedAt=Date.now();lsSet(LS,JSON.stringify(S));dirty=true;render();schedule(3500)}
+function schedule(ms){if(!artifact||readOnly)return;clearTimeout(timer);timer=setTimeout(flush,ms||1800)}
+function flush(){
+  if(!dirty||!artifact||readOnly||saving)return;
+  if(modalOpen)return;
+  saving=true;dirty=false;saveUI();try{sessionStorage.setItem('kuri-scroll',String(window.scrollY||0))}catch(e){}updStatus();
+  artifact.publish(buildHTML()).then(function(){saving=false;updStatus()},function(e){
+    saving=false;var c=(e&&e.code)||'upstream_error';
+    if(c==='conflict'){return}
+    if(/not_granted|not_writer|consent_required|capability_disabled|capability_removed|not_declared/.test(c)){readOnly=true;S=EMB;render();toast('View only — you cannot change this Kuri')}
+    else if(c==='rate_limited'){dirty=true;schedule(10000)}
+    else{dirty=true;toast('Could not save online. Kept on this device — retrying.');schedule(8000)}
+    updStatus();
+  });
+}
+try{if(window.claude&&claude.use){claude.use('artifact').then(function(a){artifact=a;artReady=true;if(a&&fromLocal){dirty=true;schedule(1500)}updStatus()},function(){artReady=true;updStatus()})}else artReady=true}catch(e){artReady=true}
+setTimeout(function(){if(!artReady){artReady=true;updStatus()}},11000);
+
+function statusText(){if(readOnly)return 'View only';if(!artReady)return '…';if(!artifact)return 'Saved on this device';if(saving)return 'Saving…';if(dirty)return 'Saving soon…';return 'Saved ✓'}
+function updStatus(){var el=document.getElementById('stat');if(el)el.textContent=statusText()}
+
+var ML={'This Month':'ഈ മാസം','Members':'അംഗങ്ങൾ','Reports':'റിപ്പോർട്ട്','Settings':'ക്രമീകരണം','Collection':'പിരിവ്','Total pot':'ആകെ കുറി തുക','Moderator share':'നടത്തിപ്പുകാരന്റെ വിഹിതം','Winner receives':'നറുക്ക് കിട്ടിയ ആൾക്ക്','Lot for':'നറുക്കെടുപ്പ്','🎲 Take Lot':'🎲 നറുക്കെടുക്കുക','🤝 Assign':'🤝 നേരിട്ട് നൽകുക','Names in the lot':'നറുക്കിലുള്ള പേരുകൾ','Already received':'ഇതിനകം കിട്ടിയവർ','Set behind (not in lot)':'പിന്നിലേക്ക് മാറ്റിയവർ','Set behind':'പിന്നിലേക്ക് മാറ്റുക','⏸ Behind':'⏸ പിന്നിൽ','Behind':'പിന്നിൽ','Won M':'കിട്ടി: മാസം ','Not paid':'അടച്ചില്ല','Paid':'അടച്ചു','Mark all paid':'എല്ലാവരും അടച്ചു','Clear all':'എല്ലാം മായ്ക്കുക','Payments':'അടവുകൾ','Payout handed over':'തുക കൈമാറി','Share on WhatsApp':'WhatsApp-ൽ അയക്കുക','Copy text':'കോപ്പി ചെയ്യുക','Undo this result':'ഈ ഫലം റദ്ദാക്കുക','🎲 Won by lot':'🎲 നറുക്കിലൂടെ','🤝 Assigned on request':'🤝 അഭ്യർത്ഥന പ്രകാരം','👤 Moderator month':'👤 നടത്തിപ്പുകാരന്റെ മാസം','Month':'മാസം','of':'/','paid':'പേർ അടച്ചു','pending':'ബാക്കി','all collected ✓':'മുഴുവൻ പിരിച്ചു ✓','Draw':'നറുക്ക്','Go to':'അടുത്ത മാസം:','Add member':'അംഗത്തെ ചേർക്കുക','Name':'പേര്','Phone':'ഫോൺ','+ Add':'+ ചേർക്കുക','Add many':'കൂട്ടമായി ചേർക്കുക','Edit':'മാറ്റുക','Search name or phone':'പേര് / ഫോൺ തിരയുക','members':'അംഗങ്ങൾ','received':'പേർക്ക് കിട്ടി','Months drawn':'നറുക്കെടുത്ത മാസങ്ങൾ','Total collected':'ആകെ പിരിച്ചത്','Moderator earned':'നടത്തിപ്പുകാരന്','Paid to winners':'വിജയികൾക്ക് നൽകിയത്','Pending dues':'കുടിശ്ശിക','up to':'വരെ','Remind':'ഓർമ്മിപ്പിക്കുക','Month by month':'മാസം തിരിച്ച്','Not drawn':'എടുത്തിട്ടില്ല','Still waiting':'ഇനി കിട്ടാനുള്ളവർ','Everyone is up to date ✓':'എല്ലാവരും അടച്ചു ✓','Everyone has received ✓':'എല്ലാവർക്കും കിട്ടി ✓','Lot':'നറുക്ക്','Assigned':'നേരിട്ട്','Moderator':'നടത്തിപ്പുകാരൻ','Kuri details':'കുറി വിവരങ്ങൾ','Backup':'ബാക്കപ്പ്','Copy backup':'ബാക്കപ്പ് കോപ്പി','Restore':'തിരികെ കൊണ്ടുവരിക','Other':'മറ്റുള്ളവ','Switch / create another Kuri':'മറ്റൊരു കുറി','Delete this Kuri':'ഈ കുറി ഡിലീറ്റ് ചെയ്യുക','Add members first':'ആദ്യം അംഗങ്ങളെ ചേർക്കുക','Add members':'അംഗങ്ങളെ ചേർക്കുക','not paid this month yet.':'പേർ ഈ മാസം അടച്ചിട്ടില്ല.','Drawing from':'നറുക്കിലുള്ളത്','names':'പേരുകൾ','Winner of':'നറുക്ക് കിട്ടിയത്','receives':'ലഭിക്കുന്നത്','Done':'ശരി','Create new Kuri':'പുതിയ കുറി തുടങ്ങുക','Language':'ഭാഷ'};
+function L(x){return UI.lang==='ml'&&ML[x]||x}
+function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function money(k,v){var loc=k.currency==='₹'?'en-IN':'en-US';return (k.currency||'')+Math.round(v||0).toLocaleString(loc)}
+function K(){for(var i=0;i<S.kuris.length;i++)if(S.kuris[i].id===S.activeId)return S.kuris[i];return null}
+function nMonths(k){return k.members.length+(k.commMode==='first'?1:0)}
+function mDate(k,i){var p=(k.start||'2026-01').split('-');return new Date(+p[0],+p[1]-1+i,1)}
+function mLabel(k,i){return mDate(k,i).toLocaleString('en-US',{month:'short',year:'numeric'})}
+function drawDate(k,i){var d=mDate(k,i);if(k.drawDay)d.setDate(Math.min(+k.drawDay,28));return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}
+function potOf(k){return (+k.amount||0)*k.members.length}
+function commOf(k,i){if(k.commMode==='first')return i===0?potOf(k):0;if(k.commMode==='share')return +k.amount||0;if(k.commMode==='fixed')return +k.commValue||0;return 0}
+function payoutOf(k,i){return potOf(k)-commOf(k,i)}
+function mem(k,id){for(var i=0;i<k.members.length;i++)if(k.members[i].id===id)return k.members[i];return null}
+function wname(k,id){if(id==='MOD')return (k.moderator||'Moderator')+' (Moderator)';var m=mem(k,id);return m?m.name:'(removed member)'}
+function wonMonth(k,id){for(var i in k.months)if(k.months[i]&&k.months[i].winner===id)return +i;return -1}
+function winners(k){var s={};for(var i in k.months){var w=k.months[i]&&k.months[i].winner;if(w&&w!=='MOD')s[w]=1}return s}
+function firstOpen(k){var n=nMonths(k);for(var i=0;i<n;i++){if(!(k.months[i]&&k.months[i].winner))return i}return Math.max(0,n-1)}
+function eligible(k){var w=winners(k);return k.members.filter(function(m){return !w[m.id]&&!m.hold})}
+function M(k,i){if(!k.months[i])k.months[i]={paid:{}};if(!k.months[i].paid)k.months[i].paid={};return k.months[i]}
+function curM(k){var n=nMonths(k);var i=UI.m[k.id];if(i==null||i>=n||i<0)i=firstOpen(k);return i}
+function started(k){for(var i in k.months){var m=k.months[i];if(m&&(m.winner||Object.keys(m.paid||{}).length))return true}return false}
+function commText(k){return {share:'1 share ('+money(k,k.amount)+') every month',fixed:money(k,k.commValue)+' every month',first:'Full 1st month pot',none:'None'}[k.commMode]||'None'}
+function waLink(text,phone){var p=String(phone||'').replace(/\D/g,'');if(p.length===10)p='91'+p;return 'https://wa.me/'+(p||'')+'?text='+encodeURIComponent(text)}
+
+function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
+function openModal(h){modalOpen=true;mroot.innerHTML='<div class="ov" data-a="ovclose"><div class="sheet">'+h+'</div></div>'}
+function closeModal(){mroot.innerHTML='';modalOpen=false;if(dirty)schedule(600)}
+function confirmBox(title,msg,yes,fn,danger){pending=fn;openModal('<h2>'+esc(title)+'</h2><p class="m">'+msg+'</p><div class="btns mt"><button class="btn s" data-a="close">Cancel</button><button class="btn '+(danger?'r':'p')+'" data-a="yes">'+esc(yes)+'</button></div>')}
+
+/* ---------- views ---------- */
+function viewHome(){
+  var h='<div class="top"><div class="row1"><div><h1>RKP കുറി</h1><div class="sub">Monthly chit / kuri groups</div></div><span class="pill" id="stat">'+statusText()+'</span></div><button class="lang" data-a="lang">'+(UI.lang==='ml'?'English':'മലയാളം')+'</button></div>';
+  if(readOnly)h+='<div class="ro">View only</div>';
+  h+='<main>';
+  if(!S.kuris.length){h+='<div class="card empty"><div class="e">🪙</div><p><b>No Kuri yet</b><br>Create a Kuri, add 20–30 members, then collect and take the lot every month.</p></div>'}
+  S.kuris.forEach(function(k){var done=0;for(var i in k.months)if(k.months[i]&&k.months[i].winner)done++;
+    h+='<button class="kcard" data-a="open" data-id="'+k.id+'"><b>'+esc(k.name)+'</b><small>'+money(k,k.amount)+' / month · '+k.members.length+' members · '+done+' of '+nMonths(k)+' months drawn</small></button>'});
+  h+='<button class="btn p full" data-a="newKuri">+ '+L('Create new Kuri')+'</button>';
+  if(!S.kuris.length)h+='<button class="btn s full mt" data-a="sample">Try with sample data (25 members)</button>';
+  h+='<button class="btn s full mt" data-a="importB">Restore from backup</button></main>';
+  return h;
+}
+function header(k){
+  var i=curM(k),n=nMonths(k);
+  return '<div class="top"><div class="row1"><button class="back" data-a="home" aria-label="All Kuris">‹</button><div style="min-width:0"><h1>'+esc(k.name)+'</h1><div class="sub">'+money(k,k.amount)+' × '+k.members.length+' members · '+n+' months</div></div><span class="pill" id="stat">'+statusText()+'</span></div><button class="lang" data-a="lang">'+(UI.lang==='ml'?'English':'മലയാളം')+'</button></div>'+(readOnly?'<div class="ro">View only — ask the moderator for changes</div>':'');
+}
+function nav(t){
+  var tabs=[['month','📅',L('This Month')],['members','👥',L('Members')],['history','📊',L('Reports')],['more','⚙️',L('Settings')]];
+  return '<nav><div class="in">'+tabs.map(function(x){return '<button class="'+(t===x[0]?'on':'')+'" data-a="tab" data-t="'+x[0]+'"><span>'+x[1]+'</span>'+x[2]+'</button>'}).join('')+'</div></nav>';
+}
+function viewMonth(k){
+  if(!k.members.length)return '<div class="card empty"><div class="e">👥</div><p><b>'+L('Add members first')+'</b><br>Each member pays '+money(k,k.amount)+' every month.</p><button class="btn p" data-a="tab" data-t="members">'+L('Add members')+'</button></div>';
+  var n=nMonths(k),i=curM(k),m=k.months[i]||{paid:{}},paid=m.paid||{};
+  var pc=k.members.filter(function(x){return paid[x.id]}).length,N=k.members.length;
+  var h='<div class="msel"><button data-a="mprev" '+(i<=0?'disabled':'')+'>‹</button><div class="c"><b>'+mLabel(k,i)+'</b><small>'+L('Month')+' '+(i+1)+' '+L('of')+' '+n+(k.drawDay?' · '+L('Draw')+' '+drawDate(k,i):'')+'</small></div><button data-a="mnext" '+(i>=n-1?'disabled':'')+'>›</button></div>';
+  // collection
+  h+='<div class="card"><h3>'+L('Collection')+'</h3><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:22px">'+money(k,pc*k.amount)+'</b><span class="mut">'+L('of')+' '+money(k,potOf(k))+'</span></div><div class="bar"><i style="width:'+(N?pc/N*100:0)+'%"></i></div><div class="mut" style="font-size:13px">'+pc+' / '+N+' '+L('paid')+(N-pc?' · '+(N-pc)+' '+L('pending'):' · '+L('all collected ✓'))+'</div>';
+  h+='<div class="mt"><div class="kv"><span>'+L('Total pot')+'</span><b>'+money(k,potOf(k))+'</b></div><div class="kv"><span>'+L('Moderator share')+'</span><b>'+money(k,commOf(k,i))+'</b></div><div class="kv big"><span>'+L('Winner receives')+'</span><b>'+money(k,payoutOf(k,i))+'</b></div></div></div>';
+  // draw
+  h+='<div class="card"><h3>'+L('Lot for')+' · '+mLabel(k,i)+'</h3>';
+  if(m.winner){
+    var methTag=m.method==='lot'?'<span class="tag won meth">'+L('🎲 Won by lot')+'</span>':m.method==='mod'?'<span class="tag ok meth">'+L('👤 Moderator month')+'</span>':'<span class="tag hold meth">'+L('🤝 Assigned on request')+'</span>';
+    h+='<div class="winner"><div class="crown">🏆</div><div class="nm">'+esc(wname(k,m.winner))+'</div>'+methTag+'<div class="mut" style="font-size:12px">'+(m.at?new Date(m.at).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'')+(m.pool?' · drawn from '+m.pool+' names':'')+'</div></div>';
+    if(m.note)h+='<div class="note">📝 '+esc(m.note)+'</div>';
+    h+='<div class="it" style="display:flex;align-items:center;gap:10px;padding:12px 0"><button class="chk '+(m.payoutDone?'on':'')+'" data-a="payout">'+(m.payoutDone?'✓':'')+'</button><div class="grow"><b>'+L('Payout handed over')+'</b><small>'+money(k,payoutOf(k,i))+(m.payoutDone&&m.payoutAt?' · '+new Date(m.payoutAt).toLocaleDateString('en-GB'):'')+'</small></div></div>';
+    h+='<div class="btns"><a class="btn wa sm" href="'+waLink(shareText(k,i))+'" target="_blank" rel="noopener">'+L('Share on WhatsApp')+'</a><button class="btn s sm" data-a="copyRes">'+L('Copy text')+'</button></div>';
+    h+='<button class="btn s full mt sm" data-a="undo" style="color:var(--red)">'+L('Undo this result')+'</button>';
+    if(i<n-1)h+='<button class="btn p full mt" data-a="mnext">'+L('Go to')+' '+mLabel(k,i+1)+' ›</button>';
+  } else if(k.commMode==='first'&&i===0){
+    h+='<p class="mut" style="margin-top:0">In this Kuri the first month\'s full pot goes to the moderator'+(k.moderator?' ('+esc(k.moderator)+')':'')+'.</p><button class="btn gold full" data-a="modMonth">Confirm moderator month</button>';
+  } else {
+    var el=eligible(k),w=winners(k),held=k.members.filter(function(x){return x.hold&&!w[x.id]});
+    if(pc<N)h+='<div class="warn">'+'⚠️ '+(N-pc)+(UI.lang==='ml'?' ':' member'+(N-pc>1?'s have':' has')+' ')+L('not paid this month yet.')+'</div>';
+    h+='<div class="kv"><span>'+L('Names in the lot')+'</span><b>'+el.length+'</b></div><div class="kv"><span>'+L('Already received')+'</span><b>'+Object.keys(w).length+'</b></div><div class="kv"><span>'+L('Set behind (not in lot)')+'</span><b>'+held.length+'</b></div>';
+    if(held.length)h+='<div class="chips">'+held.map(function(x){return '<span class="tag hold">⏸ '+esc(x.name)+'</span>'}).join('')+'</div>';
+    if(!el.length&&held.length)h+='<div class="warn">Everyone remaining is set behind. Remove the hold or assign by request.</div>';
+    h+='<div class="btns mt"><button class="btn gold" data-a="lot" '+(el.length?'':'disabled style="opacity:.5"')+'>'+L('🎲 Take Lot')+'</button><button class="btn s" data-a="assign">'+L('🤝 Assign')+'</button></div><p class="mut" style="font-size:12px;margin:8px 0 0">'+(UI.lang==='ml'?'“നേരിട്ട് നൽകുക” — സഹായം ചോദിച്ച / ഈ മാസം വേണമെന്ന് പറഞ്ഞ അംഗത്തിന് നറുക്കില്ലാതെ നൽകാൻ.</p>':'')+'<p class="mut" style="font-size:12px;margin:8px 0 0;'+(UI.lang==='ml'?'display:none':'')+'">“Assign” gives this month to a member who asked for help / requested this month, without the lot.</p>';
+  }
+  h+='</div>';
+  // payments
+  h+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><h3 style="margin:0">'+L('Payments')+' · '+mLabel(k,i)+'</h3><button class="ib" data-a="allPaid">'+(pc===N?L('Clear all'):L('Mark all paid'))+'</button></div><div class="list">';
+  k.members.forEach(function(x,ix){var p=paid[x.id];var wm=wonMonth(k,x.id);
+    h+='<div class="it"><span class="num">'+(ix+1)+'</span><div class="grow"><b>'+esc(x.name)+'</b><small>'+(p?L('Paid')+' '+(typeof p==='string'?p:''):L('Not paid'))+'</small></div>'+(wm>=0?'<span class="tag won">'+L('Won M')+(wm+1)+'</span>':x.hold?'<span class="tag hold">'+L('Behind')+'</span>':'')+'<button class="chk '+(p?'on':'')+'" data-a="pay" data-id="'+x.id+'" aria-label="Paid">'+(p?'✓':'')+'</button></div>'});
+  h+='</div></div>';
+  return h;
+}
+function shareText(k,i){var m=k.months[i]||{},ml=UI.lang==='ml';var t='*'+k.name+'* — '+(ml?'മാസം ':'Month ')+(i+1)+' ('+mLabel(k,i)+')\n';
+  if(m.method==='mod')t+=(ml?'👤 നടത്തിപ്പുകാരന്റെ മാസം: ':'👤 Moderator month: ')+(k.moderator||'Moderator')+'\n';
+  else t+=(m.method==='lot'?(ml?'🎉 നറുക്ക് കിട്ടിയത്: ':'🎉 Lot winner: '):(ml?'🤝 അഭ്യർത്ഥന പ്രകാരം നൽകിയത്: ':'🤝 Assigned (on request): '))+wname(k,m.winner)+'\n';
+  t+=(ml?'ആകെ കുറി തുക: ':'Total pot: ')+money(k,potOf(k))+'\n';if(commOf(k,i)&&m.method!=='mod')t+=(ml?'നടത്തിപ്പുകാരന്റെ വിഹിതം: ':'Moderator share: ')+money(k,commOf(k,i))+'\n';
+  if(m.method!=='mod')t+=(ml?'ലഭിക്കുന്ന തുക: ':'Amount to winner: ')+money(k,payoutOf(k,i))+'\n';
+  if(i<nMonths(k)-1)t+=ml?'\nഅടുത്ത മാസം: '+mLabel(k,i+1)+'. ദയവായി '+money(k,k.amount)+' സമയത്ത് അടയ്ക്കുക 🙏':'\nNext month: '+mLabel(k,i+1)+'. Please pay '+money(k,k.amount)+' on time 🙏';
+  return t}
+function viewMembers(k){
+  var w=winners(k),h='';
+  h+='<div class="card"><h3>'+L('Add member')+'</h3><form data-f="addM"><div class="addrow"><input class="inp" name="name" placeholder="'+L('Name')+'" required autocomplete="off"><input class="inp" name="phone" placeholder="'+L('Phone')+'" inputmode="tel" style="max-width:130px"></div><div class="btns mt"><button class="btn p" type="submit">'+L('+ Add')+'</button><button class="btn s" type="button" data-a="bulk">'+L('Add many')+'</button></div></form>';
+  if(started(k))h+='<p class="mut" style="font-size:12px;margin:8px 0 0">Note: changing members after the Kuri started changes the monthly pot and number of months.</p>';
+  h+='</div>';
+  h+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">'+k.members.length+' '+L('members')+'</h3><span class="mut" style="font-size:12px">'+Object.keys(w).length+' '+L('received')+'</span></div><input class="inp srch mt" id="msearch" placeholder="'+L('Search name or phone')+'"><div class="list" id="mlist">';
+  if(!k.members.length)h+='<p class="mut tc">No members yet.</p>';
+  k.members.forEach(function(x,ix){var wm=wonMonth(k,x.id);
+    h+='<div class="it" data-s="'+esc((x.name+' '+(x.phone||'')).toLowerCase())+'"><span class="num">'+(ix+1)+'</span><div class="grow"><b>'+esc(x.name)+'</b><small>'+esc(x.phone||'—')+(x.hold&&x.holdNote?' · '+esc(x.holdNote):'')+'</small></div>'+(wm>=0?'<span class="tag won">'+L('Won M')+(wm+1)+'</span>':'<button class="ib '+(x.hold?'on':'')+'" data-a="hold" data-id="'+x.id+'">'+(x.hold?L('⏸ Behind'):L('Set behind'))+'</button>')+'<button class="ib" data-a="editM" data-id="'+x.id+'">'+L('Edit')+'</button></div>'});
+  h+='</div></div><p class="mut" style="font-size:12px;padding:0 6px">“Set behind” keeps a member out of the lot until you remove it — for members who asked to take later.</p>';
+  return h;
+}
+function viewHistory(k){
+  var n=nMonths(k),done=0,coll=0,comm=0,out=0,cur=firstOpen(k);
+  for(var i=0;i<n;i++){var m=k.months[i];if(!m)continue;var pc=Object.keys(m.paid||{}).filter(function(id){return mem(k,id)}).length;coll+=pc*k.amount;if(m.winner){done++;comm+=commOf(k,i);if(m.method!=='mod'&&m.payoutDone)out+=payoutOf(k,i)}}
+  var h='<div class="stats"><div class="stat"><small>'+L('Months drawn')+'</small><b>'+done+' / '+n+'</b></div><div class="stat"><small>'+L('Total collected')+'</small><b>'+money(k,coll)+'</b></div><div class="stat"><small>'+L('Moderator earned')+'</small><b>'+money(k,comm)+'</b></div><div class="stat"><small>'+L('Paid to winners')+'</small><b>'+money(k,out)+'</b></div></div>';
+  // dues
+  var dues=[];k.members.forEach(function(x){var c=0,ms=[];for(var i=0;i<=cur;i++){var m=k.months[i];if(!(m&&m.paid&&m.paid[x.id])){c++;ms.push(mLabel(k,i))}}if(c)dues.push({x:x,c:c,ms:ms})});
+  h+='<div class="card"><h3>'+L('Pending dues')+' ('+(UI.lang==='ml'?mLabel(k,cur)+' '+L('up to'):'up to '+mLabel(k,cur))+')</h3><div class="list">';
+  if(!dues.length)h+='<p class="mut tc">'+L('Everyone is up to date ✓')+'</p>';
+  dues.forEach(function(d){var txt=UI.lang==='ml'?'നമസ്കാരം '+d.x.name+', *'+k.name+'* — '+d.c+' മാസത്തെ അടവ് ബാക്കിയുണ്ട് ('+d.ms.join(', ')+'). ആകെ '+money(k,d.c*k.amount)+'. ദയവായി വേഗം അടയ്ക്കുക 🙏':'Hi '+d.x.name+', reminder for *'+k.name+'*: '+d.c+' month'+(d.c>1?'s':'')+' pending ('+d.ms.join(', ')+') — total '+money(k,d.c*k.amount)+'. Please pay soon 🙏';
+    h+='<div class="it"><div class="grow"><b>'+esc(d.x.name)+'</b><small>'+esc(d.ms.join(', '))+'</small></div><span class="tag due">'+money(k,d.c*k.amount)+'</span><a class="ib" style="background:#e3f6ea;color:#1f7a45;text-decoration:none" href="'+waLink(txt,d.x.phone)+'" target="_blank" rel="noopener">'+L('Remind')+'</a></div>'});
+  h+='</div></div>';
+  // months
+  h+='<div class="card"><h3>'+L('Month by month')+'</h3><div class="list hist">';
+  for(var j=0;j<n;j++){var mm=k.months[j]||{};var pcc=Object.keys(mm.paid||{}).filter(function(id){return mem(k,id)}).length;
+    h+='<div class="it" data-a="goM" data-i="'+j+'" style="cursor:pointer"><span class="num">'+(j+1)+'</span><div class="grow"><b>'+(mm.winner?esc(wname(k,mm.winner)):'<span class="mut">'+L('Not drawn')+'</span>')+'</b><small>'+mLabel(k,j)+' · '+pcc+'/'+k.members.length+' paid'+(mm.note?' · '+esc(mm.note):'')+'</small></div>'+(mm.winner?(mm.method==='lot'?'<span class="tag won">🎲 '+L('Lot')+'</span>':mm.method==='mod'?'<span class="tag ok">'+L('Moderator')+'</span>':'<span class="tag hold">🤝 '+L('Assigned')+'</span>'):'')+'</div>'}
+  h+='</div></div>';
+  // waiting
+  var w=winners(k),wait=k.members.filter(function(x){return !w[x.id]});
+  h+='<div class="card"><h3>'+L('Still waiting')+' ('+wait.length+')</h3><div class="chips">'+(wait.map(function(x){return '<span class="tag '+(x.hold?'hold':'wait')+'">'+(x.hold?'⏸ ':'')+esc(x.name)+'</span>'}).join('')||'<span class="mut">'+L('Everyone has received ✓')+'</span>')+'</div></div>';
+  return h;
+}
+function kuriForm(k,isNew){
+  k=k||{name:'',amount:'',currency:'₹',start:new Date().toISOString().slice(0,7),drawDay:5,moderator:'',commMode:'share',commValue:0};
+  return '<form data-f="'+(isNew?'newK':'editK')+'"><label class="f">Kuri name</label><input class="inp" name="name" required value="'+esc(k.name)+'" placeholder="e.g. Pallikkal Friends Kuri 2026">'+
+  '<div class="two"><div><label class="f">Monthly amount</label><input class="inp" name="amount" type="number" inputmode="numeric" min="1" required value="'+esc(k.amount)+'" placeholder="5000"></div><div><label class="f">Currency</label><select class="inp" name="currency">'+['₹','AED ','$','SAR ','QAR ',''].map(function(c){return '<option value="'+c+'"'+(k.currency===c?' selected':'')+'>'+(c||'No symbol')+'</option>'}).join('')+'</select></div></div>'+
+  '<div class="two"><div><label class="f">First month</label><input class="inp" name="start" type="month" required value="'+esc(k.start)+'"></div><div><label class="f">Lot day of month</label><input class="inp" name="drawDay" type="number" min="1" max="28" value="'+esc(k.drawDay)+'"></div></div>'+
+  '<label class="f">Moderator name</label><input class="inp" name="moderator" value="'+esc(k.moderator)+'" placeholder="Organizer">'+
+  '<label class="f">Moderator share</label><select class="inp" name="commMode"><option value="share"'+(k.commMode==='share'?' selected':'')+'>One member’s share every month (from the pot)</option><option value="first"'+(k.commMode==='first'?' selected':'')+'>Full first month pot to moderator</option><option value="fixed"'+(k.commMode==='fixed'?' selected':'')+'>Fixed amount every month</option><option value="none"'+(k.commMode==='none'?' selected':'')+'>No moderator share</option></select>'+
+  '<label class="f">Fixed amount (only for “Fixed”)</label><input class="inp" name="commValue" type="number" min="0" value="'+esc(k.commValue||0)+'">'+
+  '<div class="btns" style="margin-top:16px">'+(isNew?'<button class="btn s" type="button" data-a="close">Cancel</button>':'')+'<button class="btn p" type="submit">'+(isNew?'Create Kuri':'Save changes')+'</button></div></form>';
+}
+function viewMore(k){
+  return '<div class="card"><h3>'+L('Kuri details')+'</h3>'+kuriForm(k,false)+'</div>'+
+  '<div class="card"><h3>'+L('Language')+'</h3><div class="btns"><button class="btn '+(UI.lang!=='ml'?'p':'s')+'" data-a="setLang" data-l="en">English</button><button class="btn '+(UI.lang==='ml'?'p':'s')+'" data-a="setLang" data-l="ml">മലയാളം</button></div></div><div class="card"><h3>'+L('Backup')+'</h3><p class="mut" style="margin-top:0;font-size:13px">Copy all data and keep it in WhatsApp/Notes as a backup.</p><div class="btns"><button class="btn s" data-a="copyB">'+L('Copy backup')+'</button><button class="btn s" data-a="importB">'+L('Restore')+'</button></div></div>'+
+  '<div class="card"><h3>'+L('Other')+'</h3><button class="btn s full" data-a="home">'+L('Switch / create another Kuri')+'</button><button class="btn r full mt" data-a="delK">'+L('Delete this Kuri')+'</button></div>';
+}
+function render(){
+  var k=K(),t=UI.tab||'month';
+  if(!k){app.innerHTML=viewHome();return}
+  app.innerHTML=header(k)+'<main>'+(t==='month'?viewMonth(k):t==='members'?viewMembers(k):t==='history'?viewHistory(k):viewMore(k))+'</main>'+nav(t);
+}
+
+/* ---------- lot ---------- */
+function runLot(k,i){
+  var el=eligible(k);if(!el.length)return toast('No names in the lot');
+  var r=new Uint32Array(1);(window.crypto||window.msCrypto).getRandomValues(r);var win=el[r[0]%el.length];
+  modalOpen=true;
+  mroot.innerHTML='<div class="lot"><div class="lot-t">'+esc(k.name)+' · '+mLabel(k,i)+'</div><div class="lot-box" id="lotBox"><div id="lotName">🎲</div></div><div class="lot-sub" id="lotSub"'+'>'+L('Drawing from')+' '+el.length+' '+L('names')+'…</div><div id="lotAct"></div></div>';
+  var nameEl=document.getElementById('lotName'),delay=45,last=-1;
+  function step(){var j;do{j=Math.floor(Math.random()*el.length)}while(el.length>1&&j===last);last=j;nameEl.textContent=el[j].name;delay*=1.075;if(delay<430)setTimeout(step,delay);else setTimeout(reveal,500)}
+  function reveal(){
+    nameEl.textContent=win.name;document.getElementById('lotBox').className='lot-box win';
+    var m=M(k,i);m.winner=win.id;m.method='lot';m.at=Date.now();m.pool=el.length;m.note='';
+    var held=k.members.filter(function(x){return x.hold&&!winners(k)[x.id]&&x.id!==win.id});if(held.length)m.note='Set behind (not in lot): '+held.map(function(x){return x.name}).join(', ');
+    commit();
+    document.getElementById('lotSub').innerHTML='🎉 '+L('Winner of')+' '+mLabel(k,i)+' · '+L('receives')+' <b>'+money(k,payoutOf(k,i))+'</b>';
+    document.getElementById('lotAct').innerHTML='<a class="btn wa full" href="'+waLink(shareText(k,i))+'" target="_blank" rel="noopener">'+L('Share on WhatsApp')+'</a><button class="btn s full" data-a="lotDone">'+L('Done')+'</button>';
+    confetti();
+  }
+  setTimeout(step,400);
+}
+function confetti(){var box=mroot.querySelector('.lot');if(!box)return;var cs=['#f3d27a','#fff','#2fa274','#ff8a65','#7fb3ff'];for(var i=0;i<60;i++){var s=document.createElement('i');s.className='cf';s.style.left=Math.random()*100+'%';s.style.background=cs[i%cs.length];s.style.animationDuration=(2+Math.random()*2.5)+'s';s.style.animationDelay=(Math.random()*.6)+'s';box.appendChild(s)}}
+
+/* ---------- actions ---------- */
+function guard(){if(readOnly){toast('View only — changes are not allowed');return false}return true}
+function act(a,d){
+  var k=K();
+  switch(a){
+  case 'ovclose':return;
+  case 'close':closeModal();return;
+  case 'yes':var f=pending;pending=null;closeModal();if(f)f();return;
+  case 'home':S.activeId=null;saveUI();render();window.scrollTo(0,0);return;
+  case 'open':S.activeId=d.id;UI.tab='month';saveUI();render();window.scrollTo(0,0);return;
+  case 'tab':UI.tab=d.t;saveUI();render();window.scrollTo(0,0);return;
+  case 'mprev':UI.m[k.id]=Math.max(0,curM(k)-1);saveUI();render();return;
+  case 'mnext':UI.m[k.id]=Math.min(nMonths(k)-1,curM(k)+1);saveUI();render();window.scrollTo(0,0);return;
+  case 'goM':UI.m[k.id]=+d.i;UI.tab='month';saveUI();render();window.scrollTo(0,0);return;
+  case 'newKuri':if(!guard())return;openModal('<h2>New Kuri</h2>'+kuriForm(null,true));return;
+  case 'sample':if(!guard())return;sample();return;
+  case 'copyRes':copy(shareText(k,curM(k)));return;
+  case 'copyB':copy(JSON.stringify(S));return;
+  case 'importB':if(!guard())return;openModal('<h2>Restore backup</h2><p class="m">Paste the backup text you copied earlier. It replaces all current data.</p><form data-f="imp"><textarea class="inp" name="t" rows="7" required></textarea><div class="btns mt"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Restore</button></div></form>');return;
+  case 'lang':UI.lang=UI.lang==='ml'?'en':'ml';saveUI();render();return;
+  case 'setLang':UI.lang=d.l;saveUI();render();return;
+  case 'lotDone':closeModal();window.scrollTo(0,0);return;
+  }
+  if(!k||!guard())return;
+  var i=curM(k);
+  switch(a){
+  case 'pay':var m=M(k,i);if(m.paid[d.id])delete m.paid[d.id];else m.paid[d.id]=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'});commit();return;
+  case 'allPaid':var m2=M(k,i),all=k.members.every(function(x){return m2.paid[x.id]});
+    if(all)confirmBox('Clear all payments?','Unmark every payment for '+mLabel(k,i)+'.','Clear',function(){m2.paid={};commit()},true);
+    else{var dt=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short'});k.members.forEach(function(x){if(!m2.paid[x.id])m2.paid[x.id]=dt});commit()}return;
+  case 'lot':var el=eligible(k);var pp=(k.months[i]&&k.months[i].paid)||{};var pc=k.members.filter(function(x){return pp[x.id]}).length;
+    confirmBox('Take the lot for '+mLabel(k,i)+'?',el.length+' names are in the lot'+(pc<k.members.length?' · <b>'+(k.members.length-pc)+' not paid yet</b>':'')+'. The result is saved immediately.','🎲 Start',function(){runLot(k,i)});return;
+  case 'assign':var w=winners(k),opts=k.members.filter(function(x){return !w[x.id]});
+    if(!opts.length)return toast('Everyone has already received');
+    openModal('<h2>Assign '+mLabel(k,i)+'</h2><p class="m">Give this month to a member on request (help / need), without the lot.</p><form data-f="assign"><label class="f">Member</label><select class="inp" name="id" required>'+opts.map(function(x){return '<option value="'+x.id+'">'+esc(x.name)+(x.hold?' (behind)':'')+'</option>'}).join('')+'</select><label class="f">Reason / note</label><input class="inp" name="note" placeholder="e.g. Requested for family function"><div class="btns" style="margin-top:16px"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Assign</button></div></form>');return;
+  case 'modMonth':var mm=M(k,0);mm.winner='MOD';mm.method='mod';mm.at=Date.now();commit();return;
+  case 'undo':confirmBox('Undo result?','Remove <b>'+esc(wname(k,k.months[i].winner))+'</b> as the '+mLabel(k,i)+' result. Payments stay as they are.','Undo',function(){var x=k.months[i];delete x.winner;delete x.method;delete x.at;delete x.pool;delete x.note;delete x.payoutDone;delete x.payoutAt;commit()},true);return;
+  case 'payout':var mp=k.months[i];mp.payoutDone=!mp.payoutDone;mp.payoutAt=mp.payoutDone?Date.now():null;commit();return;
+  case 'hold':var mh=mem(k,d.id);if(!mh)return;if(mh.hold){mh.hold=false;mh.holdNote='';commit()}else{openModal('<h2>Set '+esc(mh.name)+' behind</h2><p class="m">They will not be in the lot until you remove this. You can still assign a month to them.</p><form data-f="hold" data-id="'+mh.id+'"><label class="f">Note (optional)</label><input class="inp" name="note" placeholder="e.g. Wants to take after Ramadan"><div class="btns" style="margin-top:16px"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Set behind</button></div></form>')}return;
+  case 'editM':var me=mem(k,d.id);if(!me)return;openModal('<h2>Edit member</h2><form data-f="editM" data-id="'+me.id+'"><label class="f">Name</label><input class="inp" name="name" required value="'+esc(me.name)+'"><label class="f">Phone</label><input class="inp" name="phone" inputmode="tel" value="'+esc(me.phone||'')+'"><div class="btns" style="margin-top:16px"><button class="btn r" type="button" data-a="delM" data-id="'+me.id+'">Delete</button><button class="btn p" type="submit">Save</button></div></form>');return;
+  case 'delM':var md=mem(k,d.id);if(wonMonth(k,d.id)>=0){toast('This member already received — undo that month first');return}
+    closeModal();confirmBox('Delete '+md.name+'?','Their payment records will be removed too.','Delete',function(){k.members=k.members.filter(function(x){return x.id!==d.id});for(var j in k.months){if(k.months[j]&&k.months[j].paid)delete k.months[j].paid[d.id]}commit()},true);return;
+  case 'bulk':openModal('<h2>Add many members</h2><p class="m">One per line. Add a phone after a comma: <i>Faisal, 9876543210</i></p><form data-f="bulk"><textarea class="inp" name="t" rows="9" required></textarea><div class="btns mt"><button class="btn s" type="button" data-a="close">Cancel</button><button class="btn p" type="submit">Add all</button></div></form>');return;
+  case 'delK':confirmBox('Delete '+k.name+'?','All members, payments and lot results of this Kuri will be removed. Copy a backup first if unsure.','Delete Kuri',function(){S.kuris=S.kuris.filter(function(x){return x.id!==k.id});S.activeId=null;commit()},true);return;
+  }
+}
+function copy(t){if(window.__kuriShare){window.__kuriShare(t).catch(function(){showCopy(t)});return}try{navigator.clipboard.writeText(t).then(function(){toast('Copied ✓')},function(){showCopy(t)})}catch(e){showCopy(t)}}
+function showCopy(t){openModal('<h2>Copy this text</h2><textarea class="inp" rows="8" readonly onclick="this.select()">'+esc(t)+'</textarea><button class="btn s full mt" data-a="close">Close</button>')}
+function readKuri(fd,k){k.name=fd.get('name').trim();k.amount=+fd.get('amount');k.currency=fd.get('currency');k.start=fd.get('start');k.drawDay=+fd.get('drawDay')||'';k.moderator=fd.get('moderator').trim();k.commMode=fd.get('commMode');k.commValue=+fd.get('commValue')||0;return k}
+function onSubmit(f){
+  var fd=new FormData(f),t=f.dataset.f,k=K();
+  if(!guard())return;
+  if(t==='newK'){var nk=readKuri(fd,{id:uid(),members:[],months:{},created:Date.now()});S.kuris.push(nk);S.activeId=nk.id;UI.tab='members';saveUI();closeModal();commit();return}
+  if(t==='imp'){var o;try{o=JSON.parse(fd.get('t'))}catch(e){return toast('That is not a valid backup')}
+    if(o&&o.kuris){S=o}else if(o&&o.members&&o.months){o.id=uid();S.kuris.push(o);S.activeId=o.id}else return toast('That is not a valid backup');
+    closeModal();commit();toast('Restored ✓');return}
+  if(!k)return;
+  var i=curM(k);
+  if(t==='editK'){var oldN=k.members.length;readKuri(fd,k);commit();toast('Saved ✓');return}
+  if(t==='addM'){var nm=fd.get('name').trim();if(!nm)return;k.members.push({id:uid(),name:nm,phone:fd.get('phone').trim(),hold:false});commit();setTimeout(function(){var x=app.querySelector('[data-f=addM] [name=name]');if(x)x.focus()},30);return}
+  if(t==='bulk'){var c=0;fd.get('t').split(/\n/).forEach(function(l){var p=l.split(',');var n=(p[0]||'').trim();if(n){k.members.push({id:uid(),name:n,phone:(p[1]||'').trim(),hold:false});c++}});closeModal();commit();toast(c+' members added');return}
+  if(t==='editM'){var m=mem(k,f.dataset.id);m.name=fd.get('name').trim()||m.name;m.phone=fd.get('phone').trim();closeModal();commit();return}
+  if(t==='hold'){var mh=mem(k,f.dataset.id);mh.hold=true;mh.holdNote=fd.get('note').trim();closeModal();commit();return}
+  if(t==='assign'){var mo=M(k,i),id=fd.get('id'),am=mem(k,id);mo.winner=id;mo.method='assign';mo.at=Date.now();mo.pool=0;mo.note=fd.get('note').trim();if(am){am.hold=false}closeModal();commit();toast(am.name+' assigned for '+mLabel(k,i));return}
+}
+function sample(){
+  var names=['Abdul Rahman','Shameer K','Faisal P','Muhammed Ali','Ashraf V','Noushad','Jaseem','Rasheed','Sajid','Anwar','Haris','Shafeeq','Riyas','Nizar','Salim','Basheer','Junaid','Irshad','Fasil','Hakeem','Unais','Jabir','Mansoor','Nazeer','Sidheeq'];
+  var k={id:uid(),name:'Sample Kuri 2026',amount:5000,currency:'₹',start:new Date().toISOString().slice(0,7),drawDay:5,moderator:'Moderator',commMode:'share',commValue:0,months:{},created:Date.now(),
+    members:names.map(function(n,ix){return {id:uid(),name:n,phone:'',hold:false}})};
+  S.kuris.push(k);S.activeId=k.id;UI.tab='month';saveUI();commit();
+}
+
+app.addEventListener('click',function(e){var t=e.target.closest('[data-a]');if(!t||t.tagName==='A')return;e.preventDefault();act(t.dataset.a,t.dataset)});
+mroot.addEventListener('click',function(e){var t=e.target.closest('[data-a]');if(!t||t.tagName==='A')return;if(t.dataset.a==='ovclose'&&e.target!==t)return;if(t.dataset.a==='ovclose'){if(!mroot.querySelector('.lot'))closeModal();return}e.preventDefault();act(t.dataset.a,t.dataset)});
+document.addEventListener('submit',function(e){e.preventDefault();onSubmit(e.target)});
+app.addEventListener('input',function(e){if(e.target.id!=='msearch')return;var q=e.target.value.toLowerCase().trim();app.querySelectorAll('#mlist .it').forEach(function(r){r.style.display=!q||r.dataset.s.indexOf(q)>=0?'':'none'})});
+render();
+try{var sy=sessionStorage.getItem('kuri-scroll');if(sy){sessionStorage.removeItem('kuri-scroll');setTimeout(function(){window.scrollTo(0,+sy)},30)}}catch(e){}
+})();
+</script><script>if('serviceWorker' in navigator&&location.protocol==='https:'&&!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())){navigator.serviceWorker.register('sw.js').catch(function(){})}
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}</script></body></html>
