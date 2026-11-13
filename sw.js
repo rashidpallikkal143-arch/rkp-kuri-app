@@ -1,5 +1,5 @@
 // RKP കുറി offline cache. Bump VERSION when files change.
-const VERSION = 'rkp-kuri-v5';
+const VERSION = 'rkp-kuri-v6';
 const CORE = ['./', './index.html', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
