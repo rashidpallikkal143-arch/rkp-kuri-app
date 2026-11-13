@@ -112,7 +112,7 @@ var fromLocal=false;
 if(loc&&loc.kuris&&(loc.savedAt||0)>(EMB.savedAt||0)){S=loc;fromLocal=true}
 var UI={};try{UI=JSON.parse(lsGet(LSUI))||{}}catch(e){}
 if(!UI.m)UI.m={};
-var FIREBASE_CONFIG=null;/*FIREBASE_CONFIG*/
+var FIREBASE_CONFIG={apiKey:"AIzaSyCCbo80pPcPnnSDZoxHqRkRd3XTQDOfna8",authDomain:"rkp-kuri.firebaseapp.com",projectId:"rkp-kuri",storageBucket:"rkp-kuri.firebasestorage.app",messagingSenderId:"742683069663",appId:"1:742683069663:web:34a68cd15d4bad55a8ed6a"};
 var FBV='11.0.2';
 var SY={};try{SY=JSON.parse(lsGet('kuri-sync'))||{}}catch(e){}
 var DEV=lsGet('kuri-device');if(!DEV){DEV=Math.random().toString(36).slice(2)+Date.now().toString(36);lsSet('kuri-device',DEV)}
